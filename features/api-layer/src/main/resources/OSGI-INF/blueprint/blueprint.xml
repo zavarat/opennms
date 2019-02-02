@@ -4,6 +4,17 @@
            xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0
 		https://osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
 
+  <!-- Configuration properties for the API layer -->
+  <cm:property-placeholder id="org.opennms.features.apilayer"
+                           persistent-id="org.opennms.features.apilayer"
+                           update-strategy="reload">
+    <cm:default-properties>
+      <cm:property name="alarmFeedback.gracePeriodInMs" value="5000"/>
+      <cm:property name="alarmFeedback.sleepTimeInMs" value="1000"/>
+      <cm:property name="alarmFeedback.waitTimeMs" value="500"/>
+    </cm:default-properties>
+  </cm:property-placeholder>
+
   <!-- Runtime -->
   <service interface="org.opennms.integration.api.v1.runtime.RuntimeInfo" >
     <bean class="org.opennms.features.apilayer.RuntimeInfoImpl" />
@@ -35,17 +46,6 @@
       <argument ref="sessionUtils"/>
     </bean>
   </service>
-
-  <!-- Configuration properties for the API layer -->
-  <cm:property-placeholder id="org.opennms.features.apilayer"
-                           persistent-id="org.opennms.features.apilayer"
-                           update-strategy="reload">
-    <cm:default-properties>
-      <cm:property name="alarmFeedback.gracePeriodInMs" value="5000"/>
-      <cm:property name="alarmFeedback.sleepTimeInMs" value="1000"/>
-      <cm:property name="alarmFeedback.waitTimeMs" value="500"/>
-    </cm:default-properties>
-  </cm:property-placeholder>
 
   <service interface="org.opennms.integration.api.v1.dao.AlarmFeedbackDao">
     <bean class="org.opennms.features.apilayer.dao.AlarmFeedbackDaoImpl">
@@ -156,5 +156,13 @@
   <bean id="pollerClient" class="org.opennms.features.apilayer.pollers.ServicePollerClientImpl">
     <argument ref="locationAwarePollerClient"/>
   </bean>
+
+  <!-- Requisition Providers -->
+  <bean id="requisitionProviderManager" class="org.opennms.features.apilayer.requisition.RequisitionProviderManager">
+    <argument ref="blueprintBundleContext"/>
+  </bean>
+  <reference-list interface="org.opennms.integration.api.v1.requisition.RequisitionProvider" availability="optional">
+    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="requisitionProviderManager" />
+  </reference-list>
 
 </blueprint>
