@@ -186,11 +186,11 @@ abstract public class PollerConfigManager implements PollerConfig {
     public void save() throws IOException {
         try {
             getWriteLock().lock();
+            // TODO: Ensure that any additions provided by the extensions are not serialized to disk
             // marshal to a string first, then write the string to the file. This
             // way the original config
             // isn't lost if the XML from the marshal is hosed.
             saveXml(JaxbUtils.marshal(m_config));
-
             update();
         } finally {
             getWriteLock().unlock();

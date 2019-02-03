@@ -142,7 +142,7 @@
     <argument ref="locationAwareDetectorClient"/>
   </bean>
 
-  <!-- Service Pollers -->
+  <!-- Poller -->
   <bean id="servicePollerManager" class="org.opennms.features.apilayer.pollers.ServicePollerManager">
     <argument ref="blueprintBundleContext"/>
   </bean>
@@ -156,6 +156,11 @@
   <bean id="pollerClient" class="org.opennms.features.apilayer.pollers.ServicePollerClientImpl">
     <argument ref="locationAwarePollerClient"/>
   </bean>
+
+  <bean id="pollerExtensionManager" class="org.opennms.features.apilayer.config.PollerConfigExtensionManager" />
+  <reference-list interface="org.opennms.integration.api.v1.config.poller.PollerConfigExtension" availability="optional">
+    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="pollerExtensionManager" />
+  </reference-list>
 
   <!-- Requisition Providers -->
   <bean id="requisitionProviderManager" class="org.opennms.features.apilayer.requisition.RequisitionProviderManager">

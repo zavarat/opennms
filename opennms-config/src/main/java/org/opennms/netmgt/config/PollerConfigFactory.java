@@ -40,9 +40,11 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
+import org.opennms.core.config.api.ConfigReloadContainer;
 import org.opennms.core.utils.ConfigFileConstants;
 import org.opennms.core.xml.JaxbUtils;
 import org.opennms.netmgt.config.poller.PollerConfiguration;
+import org.opennms.netmgt.xml.eventconf.Events;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,11 @@ public final class PollerConfigFactory extends PollerConfigManager {
     private long m_currentVersion = -1L;
 
     /**
+     * Extensions.
+     */
+    private ConfigReloadContainer<PollerConfiguration> m_extContainer;
+
+    /**
      * <p>Constructor for PollerConfigFactory.</p>
      *
      * @param currentVersion a long.
@@ -88,6 +95,7 @@ public final class PollerConfigFactory extends PollerConfigManager {
     public PollerConfigFactory(final long currentVersion, final InputStream stream) {
         super(stream);
         m_currentVersion = currentVersion;
+        initExtensions();
     }
 
     /**
@@ -218,8 +226,32 @@ public final class PollerConfigFactory extends PollerConfigManager {
                 init();
                 LOG.debug("init: finished loading config file: {}", cfgFile.getPath());
             }
+            // Merge the extensions
+            merge(m_config, m_extContainer.getObject());
         } finally {
             getWriteLock().unlock();
         }
     }
+
+    private void initExtensions() {
+        m_extContainer = new ConfigReloadContainer.Builder<>(PollerConfiguration.class)
+                .withMerger((source, target) -> {
+                    if (target == null) {
+                        target = new PollerConfiguration();
+                    }
+                    if (source == null) {
+                        source = new PollerConfiguration();
+                    }
+                    merge(target, source);
+                    return target;
+                })
+                .build();
+    }
+
+    private static void merge(PollerConfiguration target, PollerConfiguration source) {
+        // TODO: Ensure there are no dups
+        source.getMonitors().forEach(target::addMonitor);
+        source.getPackages().forEach(target::addPackage);
+    }
+
 }
