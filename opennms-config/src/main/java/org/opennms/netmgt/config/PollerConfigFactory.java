@@ -36,15 +36,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.opennms.core.config.api.ConfigReloadContainer;
 import org.opennms.core.utils.ConfigFileConstants;
 import org.opennms.core.xml.JaxbUtils;
+import org.opennms.netmgt.config.poller.Monitor;
+import org.opennms.netmgt.config.poller.Package;
 import org.opennms.netmgt.config.poller.PollerConfiguration;
-import org.opennms.netmgt.xml.eventconf.Events;
+import org.opennms.netmgt.config.poller.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,8 +230,10 @@ public final class PollerConfigFactory extends PollerConfigManager {
                 init();
                 LOG.debug("init: finished loading config file: {}", cfgFile.getPath());
             }
-            // Merge the extensions
+            // Merge the extensions // FIXME: Everytime we reload, we end up appending, so if an extension goes away, it's still there
             merge(m_config, m_extContainer.getObject());
+            // Hack to allow service monitors to be added after a reload
+            setUpInternalData();
         } finally {
             getWriteLock().unlock();
         }
@@ -249,9 +255,38 @@ public final class PollerConfigFactory extends PollerConfigManager {
     }
 
     private static void merge(PollerConfiguration target, PollerConfiguration source) {
-        // TODO: Ensure there are no dups
-        source.getMonitors().forEach(target::addMonitor);
-        source.getPackages().forEach(target::addPackage);
+        if (source == null || target == null) {
+            // Nothing to do here
+            return;
+        }
+
+        final Set<String> monitorServiceNames = new HashSet<>(target.getMonitors().stream().map(Monitor::getService).collect(Collectors.toSet()));
+        source.getMonitors().forEach(m -> {
+            if (monitorServiceNames.contains(m.getService())) {
+                return;
+            }
+            target.addMonitor(m);
+            monitorServiceNames.add(m.getService());
+        });
+
+        source.getPackages().forEach(p -> {
+            final Package pkg = target.getPackage(p.getName());
+            if (pkg == null) {
+                return;
+            }
+
+            // Add all of the services, if one already exists with the given name, skip it
+            p.getServices().forEach(svc -> {
+                if (pkg.getService(svc.getName()) != null) {
+                    return;
+                }
+                final Service service = new Service();
+                service.setName(svc.getName());
+                service.setInterval(svc.getInterval());
+                svc.getParameters().forEach(service::addParameter);
+                pkg.addService(service);
+            });
+        });
     }
 
 }

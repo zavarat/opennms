@@ -157,10 +157,16 @@
     <argument ref="locationAwarePollerClient"/>
   </bean>
 
-  <bean id="pollerExtensionManager" class="org.opennms.features.apilayer.config.PollerConfigExtensionManager" />
+  <bean id="pollerConfigExtensionManager" class="org.opennms.features.apilayer.config.PollerConfigExtensionManager" />
   <reference-list interface="org.opennms.integration.api.v1.config.poller.PollerConfigExtension" availability="optional">
-    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="pollerExtensionManager" />
+    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="pollerConfigExtensionManager" />
   </reference-list>
+
+  <service ref="pollerConfigExtensionManager" interface="org.opennms.core.config.api.ConfigurationProvider" >
+    <service-properties>
+      <entry key="registration.export" value="true"/>
+    </service-properties>
+  </service>
 
   <!-- Requisition Providers -->
   <bean id="requisitionProviderManager" class="org.opennms.features.apilayer.requisition.RequisitionProviderManager">

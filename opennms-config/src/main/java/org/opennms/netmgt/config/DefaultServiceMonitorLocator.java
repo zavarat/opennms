@@ -35,6 +35,7 @@
 package org.opennms.netmgt.config;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import org.opennms.netmgt.poller.ServiceMonitor;
 import org.opennms.netmgt.poller.ServiceMonitorLocator;
@@ -46,11 +47,11 @@ public class DefaultServiceMonitorLocator implements ServiceMonitorLocator, Seri
      * DO NOT CHANGE!
      * This class is serialized by remote poller communications.
      */
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
-    String m_serviceName;
-    Class<? extends ServiceMonitor> m_serviceClass;
-    
+    private final String m_serviceName;
+    private String m_serviceClassName;
+
     /**
      * <p>Constructor for DefaultServiceMonitorLocator.</p>
      *
@@ -58,16 +59,21 @@ public class DefaultServiceMonitorLocator implements ServiceMonitorLocator, Seri
      * @param serviceClass a {@link java.lang.Class} object.
      */
     public DefaultServiceMonitorLocator(String serviceName, Class<? extends ServiceMonitor> serviceClass) {
-        m_serviceName = serviceName;
-        m_serviceClass = serviceClass;
+        m_serviceName = Objects.requireNonNull(serviceName);
+        m_serviceClassName = Objects.requireNonNull(serviceClass).getCanonicalName();
+    }
+
+    public DefaultServiceMonitorLocator(String serviceName, String serviceClassName) {
+        m_serviceName = Objects.requireNonNull(serviceName);
+        m_serviceClassName = Objects.requireNonNull(serviceClassName);
     }
 
     @Override
     public ServiceMonitor getServiceMonitor(ServiceMonitorRegistry registry) {
-        final ServiceMonitor sm = registry.getMonitorByClassName(m_serviceClass.getCanonicalName());
+        final ServiceMonitor sm = registry.getMonitorByClassName(m_serviceClassName);
         if (sm == null) {
             throw new ConfigObjectRetrievalFailureException("Could not find monitor for service "
-                    +m_serviceName+" with class-name "+m_serviceClass.getName(), null);
+                    +m_serviceName+" with class-name "+m_serviceClassName, null);
         }
         return sm;
     }
@@ -89,7 +95,7 @@ public class DefaultServiceMonitorLocator implements ServiceMonitorLocator, Seri
      */
     @Override
     public String getServiceLocatorKey() {
-        return m_serviceClass.getName();
+        return m_serviceClassName;
     }
 
 }

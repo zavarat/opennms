@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -970,14 +971,15 @@ abstract public class PollerConfigManager implements PollerConfig {
         LOG.debug("start: Loading monitors");
 
         final Collection<ServiceMonitorLocator> locators = getServiceMonitorLocators(DistributionContext.DAEMON);
-        
+        final Map<String, ServiceMonitor> svcMonitors = new LinkedHashMap<>();
         for (final ServiceMonitorLocator locator : locators) {
             try {
-                m_svcMonitors.put(locator.getServiceName(), locator.getServiceMonitor(s_serviceMonitorRegistry));
+                svcMonitors.put(locator.getServiceName(), locator.getServiceMonitor(s_serviceMonitorRegistry));
             } catch (Throwable t) {
                 LOG.warn("start: Failed to create monitor {} for service {}", locator.getServiceLocatorKey(), locator.getServiceName(), t);
             }
         }
+        m_svcMonitors = svcMonitors;
     }
 
     /**
@@ -1009,20 +1011,22 @@ abstract public class PollerConfigManager implements PollerConfig {
     /** {@inheritDoc} */
     @Override
     public Collection<ServiceMonitorLocator> getServiceMonitorLocators(final DistributionContext context) {
-        List<ServiceMonitorLocator> locators = new ArrayList<ServiceMonitorLocator>();
-
+        final List<ServiceMonitorLocator> locators = new ArrayList<>();
         try {
             getReadLock().lock();
             for(final Monitor monitor : monitors()) {
                 try {
-                    final Class<? extends ServiceMonitor> mc = findServiceMonitorClass(monitor);
+                    final ServiceMonitor serviceMonitor = s_serviceMonitorRegistry.getMonitorByClassName(monitor.getClassName());
+                    if (serviceMonitor == null) {
+                        LOG.warn("No monitor found in registry for class name: {}", monitor.getClassName());
+                        continue;
+                    }
+                    final Class<? extends ServiceMonitor> mc = serviceMonitor.getClass();
                     if (isDistributableToContext(mc, context)) {
-                        final ServiceMonitorLocator locator = new DefaultServiceMonitorLocator(monitor.getService(), mc);
+                        final ServiceMonitorLocator locator = new DefaultServiceMonitorLocator(monitor.getService(), monitor.getClassName());
                         locators.add(locator);
                     }
                     LOG.debug("Loaded monitor for service: {}, class-name: {}", monitor.getService(), monitor.getClassName());
-                } catch (final ClassNotFoundException e) {
-                    LOG.warn("Unable to load monitor for service: {}, class-name: {}: {}", monitor.getService(), monitor.getClassName(), e.getMessage());
                 } catch (ConfigObjectRetrievalFailureException e) {
                     LOG.warn("{} {}", e.getMessage(), e.getRootCause(), e);
                 }
