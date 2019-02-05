@@ -288,7 +288,6 @@
                              referencedTableName="applications" referencedColumnNames="id" onDelete="CASCADE"/>
   </changeSet>
 
-<<<<<<< HEAD
   <changeSet author="mvrueden" id="24.0.0-graph-tables">
     <createTable tableName="graph_elements" remarks="contains vertices, edges, graphs and containers">
       <column name="id" type="bigint">
