@@ -26,31 +26,28 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.features.apilayer.graph;
+package org.opennms.features.apilayer.graph.mappers;
 
-import java.util.Objects;
+import org.mapstruct.Mapper;
+import org.opennms.netmgt.graph.api.generic.GenericGraphContainer;
+import org.opennms.netmgt.graph.api.info.DefaultGraphContainerInfo;
+import org.opennms.netmgt.graph.api.info.DefaultGraphInfo;
+import org.opennms.netmgt.graph.api.info.GraphContainerInfo;
+import org.opennms.netmgt.graph.api.info.GraphInfo;
 
-import org.mapstruct.factory.Mappers;
-import org.opennms.features.apilayer.graph.mappers.GraphContainerMapper;
-import org.opennms.integration.api.v1.graph.GraphContainer;
-import org.opennms.integration.api.v1.graph.GraphRepository;
+@Mapper(uses={GraphMapper.class})
+public interface GraphContainerMapper {
 
-public class GraphRepositoryImpl implements GraphRepository {
-    private static final GraphContainerMapper MAPPER = Mappers.getMapper(GraphContainerMapper.class);
+    org.opennms.integration.api.v1.graph.beans.ImmutableGraphContainer map(GenericGraphContainer container);
 
-    private final org.opennms.netmgt.graph.persistence.api.GraphRepository delegate;
+    GenericGraphContainer map(org.opennms.integration.api.v1.graph.GraphContainer container);
 
-    public GraphRepositoryImpl(org.opennms.netmgt.graph.persistence.api.GraphRepository delegate) {
-        this.delegate = Objects.requireNonNull(delegate);
-    }
+    DefaultGraphContainerInfo map(org.opennms.integration.api.v1.graph.GraphContainerInfo containerInfo);
 
-    @Override
-    public void save(GraphContainer graphContainer) {
-        delegate.save(MAPPER.map(graphContainer));
-    }
+    org.opennms.integration.api.v1.graph.beans.ImmutableGraphContainerInfo map(GraphContainerInfo containerInfo);
 
-    @Override
-    public GraphContainer findContainerById(String containerId) {
-        return MAPPER.map(delegate.findContainerById(containerId));
-    }
+    org.opennms.integration.api.v1.graph.beans.ImmutableGraphInfo map(GraphInfo graphInfo);
+
+    DefaultGraphInfo map(org.opennms.integration.api.v1.graph.GraphInfo graphInfo);
+
 }

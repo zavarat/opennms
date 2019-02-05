@@ -110,7 +110,8 @@ public class AbstractEdge<V extends Vertex> implements Edge {
 
     @Override
     public String toString() {
-        return asGenericEdge().toString();
+        return "some-string";
+       // return asGenericEdge().toString();
     }
 
     @Override

@@ -1,8 +1,8 @@
 /*******************************************************************************
  * This file is part of OpenNMS(R).
  *
- * Copyright (C) 2018 The OpenNMS Group, Inc.
- * OpenNMS(R) is Copyright (C) 1999-2018 The OpenNMS Group, Inc.
+ * Copyright (C) 2019 The OpenNMS Group, Inc.
+ * OpenNMS(R) is Copyright (C) 1999-2019 The OpenNMS Group, Inc.
  *
  * OpenNMS(R) is a registered trademark of The OpenNMS Group, Inc.
  *
@@ -28,56 +28,55 @@
 
 package org.opennms.features.apilayer.model;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import org.opennms.integration.api.v1.model.Node;
-import org.opennms.integration.api.v1.model.NodeAssetRecord;
-import org.opennms.integration.api.v1.model.SnmpInterface;
-import org.opennms.netmgt.model.OnmsNode;
+import org.opennms.integration.api.v1.model.Geolocation;
+import org.opennms.netmgt.model.OnmsGeolocation;
 
-public class NodeBean implements Node {
+public class GeolocationBean implements Geolocation {
+    private final OnmsGeolocation geolocation;
 
-    private final OnmsNode node;
-    private final NodeAssetRecord assetRecord;
-    private final List<SnmpInterface> snmpInterfaces;
-
-    public NodeBean(OnmsNode node) {
-        this.node = Objects.requireNonNull(node);
-        this.assetRecord = new NodeAssetRecordBean(node.getAssetRecord());
-        this.snmpInterfaces = node.getSnmpInterfaces().stream()
-                .map(SnmpInterfaceBean::new)
-                .collect(Collectors.toList());
+    public GeolocationBean(OnmsGeolocation geolocation) {
+        this.geolocation = Objects.requireNonNull(geolocation);
     }
 
     @Override
-    public Integer getId() {
-        return node.getId();
+    public String getAddress1() {
+        return geolocation.getAddress1();
     }
 
     @Override
-    public String getForeignSource() {
-        return node.getForeignSource();
+    public String getAddress2() {
+        return geolocation.getAddress2();
     }
 
     @Override
-    public String getForeignId() {
-        return node.getForeignId();
+    public String getCity() {
+        return geolocation.getCity();
     }
 
     @Override
-    public String getLabel() {
-        return node.getLabel();
+    public String getState() {
+        return geolocation.getState();
     }
 
     @Override
-    public NodeAssetRecord getAssetRecord() {
-        return null;
+    public String getZip() {
+        return geolocation.getZip();
     }
 
     @Override
-    public List<SnmpInterface> getSnmpInterfaces() {
-        return snmpInterfaces;
+    public String getCountry() {
+        return geolocation.getCountry();
+    }
+
+    @Override
+    public Double getLongitude() {
+        return geolocation.getLongitude();
+    }
+
+    @Override
+    public Double getLatitude() {
+        return geolocation.getLatitude();
     }
 }

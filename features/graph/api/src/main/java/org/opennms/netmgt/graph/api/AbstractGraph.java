@@ -72,11 +72,27 @@ public class AbstractGraph<V extends Vertex, E extends Edge> implements Graph<V,
         return new ArrayList<>(vertexToIdMap.values());
     }
 
+    public void setVertices(List<V> vertices) {
+        this.vertexToIdMap.clear();
+        if (vertices == null) {
+            return;
+        }
+        vertices.forEach(this::addVertex);
+    }
+
     @Override
     public List<E> getEdges() {
         // TODO MVR use junggraph.getEdges instead. However addEdge is adding the edges if not in same namespace
         // We have to figure out a workaround for that somehow
         return new ArrayList<>(edgeToIdMap.values());
+    }
+
+    public void setEdges(List<E> edges) {
+        this.edgeToIdMap.clear();
+        if (edges == null) {
+            return;
+        }
+        edges.forEach(this::addEdge);
     }
 
     @Override

@@ -44,9 +44,17 @@ public class GenericGraphContainer implements GraphContainer<GenericVertex, Gene
     private List<GenericGraph> graphs = new ArrayList<>();
     private Map<String, Object> properties = new HashMap<>();
 
+    public void setGraphs(List<GenericGraph> graphs) {
+        if (graphs == null) {
+            return;
+        }
+        this.graphs.clear();
+        this.graphs.addAll(graphs);
+    }
+
     @Override
     public List<GenericGraph> getGraphs() {
-        return new ArrayList<>(graphs);
+        return graphs;
     }
 
     @Override

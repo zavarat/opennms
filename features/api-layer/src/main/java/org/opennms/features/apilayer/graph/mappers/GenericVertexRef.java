@@ -26,31 +26,46 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.features.apilayer.graph;
+package org.opennms.features.apilayer.graph.mappers;
 
 import java.util.Objects;
 
-import org.mapstruct.factory.Mappers;
-import org.opennms.features.apilayer.graph.mappers.GraphContainerMapper;
-import org.opennms.integration.api.v1.graph.GraphContainer;
-import org.opennms.integration.api.v1.graph.GraphRepository;
+import org.opennms.netmgt.graph.api.VertexRef;
 
-public class GraphRepositoryImpl implements GraphRepository {
-    private static final GraphContainerMapper MAPPER = Mappers.getMapper(GraphContainerMapper.class);
+public class GenericVertexRef implements VertexRef {
+    private final org.opennms.integration.api.v1.graph.VertexRef vertexRef;
 
-    private final org.opennms.netmgt.graph.persistence.api.GraphRepository delegate;
-
-    public GraphRepositoryImpl(org.opennms.netmgt.graph.persistence.api.GraphRepository delegate) {
-        this.delegate = Objects.requireNonNull(delegate);
+    public GenericVertexRef(org.opennms.integration.api.v1.graph.VertexRef vertexRef) {
+        this.vertexRef = Objects.requireNonNull(vertexRef);
     }
 
     @Override
-    public void save(GraphContainer graphContainer) {
-        delegate.save(MAPPER.map(graphContainer));
+    public String getNamespace() {
+        return vertexRef.getNamespace();
     }
 
     @Override
-    public GraphContainer findContainerById(String containerId) {
-        return MAPPER.map(delegate.findContainerById(containerId));
+    public String getId() {
+        return vertexRef.getId();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GenericVertexRef that = (GenericVertexRef) o;
+        return Objects.equals(vertexRef, that.vertexRef);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vertexRef);
+    }
+
+    @Override
+    public String toString() {
+        return "GenericVertexRef{" +
+                "vertexRef=" + vertexRef +
+                '}';
     }
 }

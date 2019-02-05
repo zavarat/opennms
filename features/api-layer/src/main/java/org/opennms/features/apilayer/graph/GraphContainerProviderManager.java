@@ -28,29 +28,17 @@
 
 package org.opennms.features.apilayer.graph;
 
-import java.util.Objects;
+import org.opennms.features.apilayer.utils.InterfaceMapper;
+import org.opennms.integration.api.v1.graph.GraphContainerProvider;
+import org.osgi.framework.BundleContext;
 
-import org.mapstruct.factory.Mappers;
-import org.opennms.features.apilayer.graph.mappers.GraphContainerMapper;
-import org.opennms.integration.api.v1.graph.GraphContainer;
-import org.opennms.integration.api.v1.graph.GraphRepository;
-
-public class GraphRepositoryImpl implements GraphRepository {
-    private static final GraphContainerMapper MAPPER = Mappers.getMapper(GraphContainerMapper.class);
-
-    private final org.opennms.netmgt.graph.persistence.api.GraphRepository delegate;
-
-    public GraphRepositoryImpl(org.opennms.netmgt.graph.persistence.api.GraphRepository delegate) {
-        this.delegate = Objects.requireNonNull(delegate);
+public class GraphContainerProviderManager extends InterfaceMapper<GraphContainerProvider, org.opennms.netmgt.graph.api.service.GraphContainerProvider> {
+    public GraphContainerProviderManager(BundleContext bundleContext) {
+        super(org.opennms.netmgt.graph.api.service.GraphContainerProvider.class, bundleContext);
     }
 
     @Override
-    public void save(GraphContainer graphContainer) {
-        delegate.save(MAPPER.map(graphContainer));
-    }
-
-    @Override
-    public GraphContainer findContainerById(String containerId) {
-        return MAPPER.map(delegate.findContainerById(containerId));
+    public org.opennms.netmgt.graph.api.service.GraphContainerProvider map(GraphContainerProvider ext) {
+        return new GraphContainerProviderImpl(ext);
     }
 }

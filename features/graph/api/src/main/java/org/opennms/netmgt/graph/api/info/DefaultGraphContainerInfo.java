@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 // TODO MVR the location is weird. Some of the stuff is named default, others is simple, but there is also a simple module... so what is it going to be?
 public class DefaultGraphContainerInfo implements GraphContainerInfo {
 
-    private final String id;
+    private String id;
     private List<GraphInfo> graphInfos = new ArrayList<>();
     private String description;
     private String label;
@@ -44,6 +44,8 @@ public class DefaultGraphContainerInfo implements GraphContainerInfo {
     public DefaultGraphContainerInfo(String id) {
         this.id = Objects.requireNonNull(id);
     }
+
+    public DefaultGraphContainerInfo() { }
 
     @Override
     public List<String> getNamespaces() {
@@ -81,6 +83,10 @@ public class DefaultGraphContainerInfo implements GraphContainerInfo {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public List<GraphInfo> getGraphInfos() {
         return graphInfos;
@@ -96,5 +102,31 @@ public class DefaultGraphContainerInfo implements GraphContainerInfo {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DefaultGraphContainerInfo that = (DefaultGraphContainerInfo) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(graphInfos, that.graphInfos) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(label, that.label);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, graphInfos, description, label);
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultGraphContainerInfo{" +
+                "id='" + id + '\'' +
+                ", graphInfos=" + graphInfos +
+                ", description='" + description + '\'' +
+                ", label='" + label + '\'' +
+                '}';
     }
 }

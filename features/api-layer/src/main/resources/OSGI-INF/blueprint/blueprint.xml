@@ -26,6 +26,8 @@
   <reference id="snmpInterfaceDao" interface="org.opennms.netmgt.dao.api.SnmpInterfaceDao" availability="mandatory"/>
   <reference id="sessionUtils" interface="org.opennms.netmgt.dao.api.SessionUtils"/>
   <reference id="deployedForeignSourceRepository" interface="org.opennms.netmgt.provision.persist.ForeignSourceRepository" filter="(type=deployed)"/>
+  <reference id="eventSubscriptionService" interface="org.opennms.netmgt.events.api.EventSubscriptionService"/>
+  <reference id="graphRepository" interface="org.opennms.netmgt.graph.persistence.api.GraphRepository"/>
 
   <service interface="org.opennms.integration.api.v1.dao.NodeDao" >
     <bean class="org.opennms.features.apilayer.dao.NodeDaoImpl">
@@ -67,7 +69,9 @@
     <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="eventConfExtensionManager" />
   </reference-list>
 
-  <bean id="eventListenerManager" class="org.opennms.features.apilayer.events.EventListenerManager"/>
+  <bean id="eventListenerManager" class="org.opennms.features.apilayer.events.EventListenerManager">
+    <argument ref="eventSubscriptionService"/>
+  </bean>
   <reference-list interface="org.opennms.integration.api.v1.events.EventListener" availability="optional">
     <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="eventListenerManager" />
   </reference-list>
@@ -189,8 +193,17 @@
   </service>
 
   <!-- Graphs -->
-  <service interface="org.opennms.integration.api.v1.graph.GraphRepository" >
-    <bean class="org.opennms.features.apilayer.graph.GraphRepositoryImpl" />
+  <service interface="org.opennms.integration.api.v1.graph.GraphRepository">
+    <bean class="org.opennms.features.apilayer.graph.GraphRepositoryImpl">
+      <argument ref="graphRepository"/>
+    </bean>
   </service>
+
+  <bean id="graphContainerProviderManager" class="org.opennms.features.apilayer.graph.GraphContainerProviderManager">
+    <argument ref="blueprintBundleContext"/>
+  </bean>
+  <reference-list interface="org.opennms.integration.api.v1.graph.GraphContainerProvider" availability="optional">
+    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="graphContainerProviderManager" />
+  </reference-list>
 
 </blueprint>

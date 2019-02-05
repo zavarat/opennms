@@ -52,6 +52,8 @@ public class DefaultGraphInfo implements GraphInfo {
         setDescription(copy.getDescription());
     }
 
+    public DefaultGraphInfo() { }
+
     @Override
     public String getNamespace() {
         return namespace;
