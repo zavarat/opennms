@@ -288,6 +288,7 @@
                              referencedTableName="applications" referencedColumnNames="id" onDelete="CASCADE"/>
   </changeSet>
 
+<<<<<<< HEAD
   <changeSet author="mvrueden" id="24.0.0-graph-tables">
     <createTable tableName="graph_elements" remarks="contains vertices, edges, graphs and containers">
       <column name="id" type="bigint">
@@ -355,6 +356,17 @@
     <addForeignKeyConstraint constraintName="fk_graph_element_relations_child_id"
                              baseTableName="graph_element_relations" baseColumnNames="child_id"
                              referencedTableName="graph_elements" referencedColumnNames="id" onDelete="CASCADE"/>
+  </changeSet>
+
+  <changeSet author="jwhite" id="24.0.0-create-refid-index-on-acks">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="acks"/>
+    </preConditions>
+
+    <!-- Create index-->
+    <sql>
+      CREATE INDEX ack_refid_idx ON acks USING btree (refid);
+    </sql>
   </changeSet>
 
 </databaseChangeLog>
