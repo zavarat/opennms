@@ -20,11 +20,12 @@
     <bean class="org.opennms.features.apilayer.RuntimeInfoImpl" />
   </service>
 
-  <!-- DAOs -->
+  <!-- Services -->
   <reference id="alarmDao" interface="org.opennms.netmgt.dao.api.AlarmDao" availability="mandatory"/>
   <reference id="nodeDao" interface="org.opennms.netmgt.dao.api.NodeDao" availability="mandatory"/>
   <reference id="snmpInterfaceDao" interface="org.opennms.netmgt.dao.api.SnmpInterfaceDao" availability="mandatory"/>
   <reference id="sessionUtils" interface="org.opennms.netmgt.dao.api.SessionUtils"/>
+  <reference id="deployedForeignSourceRepository" interface="org.opennms.netmgt.provision.persist.ForeignSourceRepository" filter="(type=deployed)"/>
 
   <service interface="org.opennms.integration.api.v1.dao.NodeDao" >
     <bean class="org.opennms.features.apilayer.dao.NodeDaoImpl">
@@ -64,6 +65,11 @@
   </bean>
   <reference-list interface="org.opennms.integration.api.v1.config.events.EventConfExtension" availability="optional">
     <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="eventConfExtensionManager" />
+  </reference-list>
+
+  <bean id="eventListenerManager" class="org.opennms.features.apilayer.events.EventListenerManager"/>
+  <reference-list interface="org.opennms.integration.api.v1.events.EventListener" availability="optional">
+    <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="eventListenerManager" />
   </reference-list>
 
   <service ref="eventConfExtensionManager" interface="org.opennms.core.config.api.ConfigurationProvider" >
@@ -175,5 +181,16 @@
   <reference-list interface="org.opennms.integration.api.v1.requisition.RequisitionProvider" availability="optional">
     <reference-listener bind-method="onBind" unbind-method="onUnbind" ref="requisitionProviderManager" />
   </reference-list>
+
+  <service interface="org.opennms.integration.api.v1.requisition.RequisitionRepository" >
+    <bean class="org.opennms.features.apilayer.requisition.RequisitionRepositoryImpl">
+      <argument ref="deployedForeignSourceRepository"/>
+    </bean>
+  </service>
+
+  <!-- Graphs -->
+  <service interface="org.opennms.integration.api.v1.graph.GraphRepository" >
+    <bean class="org.opennms.features.apilayer.graph.GraphRepositoryImpl" />
+  </service>
 
 </blueprint>

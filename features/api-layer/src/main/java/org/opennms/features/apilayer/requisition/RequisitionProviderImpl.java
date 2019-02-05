@@ -32,18 +32,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 
-import org.opennms.core.utils.InetAddressUtils;
+import org.mapstruct.factory.Mappers;
+import org.opennms.features.apilayer.requisition.mappers.RequisitionMapper;
 import org.opennms.integration.api.v1.requisition.RequisitionProvider;
-import org.opennms.netmgt.model.PrimaryType;
 import org.opennms.netmgt.provision.persist.RequisitionRequest;
 import org.opennms.netmgt.provision.persist.requisition.Requisition;
-import org.opennms.netmgt.provision.persist.requisition.RequisitionAsset;
-import org.opennms.netmgt.provision.persist.requisition.RequisitionCategory;
-import org.opennms.netmgt.provision.persist.requisition.RequisitionInterface;
-import org.opennms.netmgt.provision.persist.requisition.RequisitionMonitoredService;
-import org.opennms.netmgt.provision.persist.requisition.RequisitionNode;
 
 public class RequisitionProviderImpl implements org.opennms.netmgt.provision.persist.RequisitionProvider {
+    private static final RequisitionMapper MAPPER = Mappers.getMapper(RequisitionMapper.class);
+
     private final RequisitionProvider delegate;
 
     public RequisitionProviderImpl(RequisitionProvider delegate) {
@@ -64,7 +61,7 @@ public class RequisitionProviderImpl implements org.opennms.netmgt.provision.per
     @Override
     public Requisition getRequisition(RequisitionRequest request) {
         final org.opennms.integration.api.v1.requisition.RequisitionRequest apiRequest = getRequestFromWrapper(request);
-        return toRequisition(delegate.getRequisition(apiRequest));
+        return MAPPER.map(delegate.getRequisition(apiRequest));
     }
 
     @Override
@@ -86,60 +83,6 @@ public class RequisitionProviderImpl implements org.opennms.netmgt.provision.per
         }
         final WrappedRequisitionRequest wrappedRequest = (WrappedRequisitionRequest)request;
         return wrappedRequest.getRequest();
-    }
-
-    private static Requisition toRequisition(org.opennms.integration.api.v1.config.requisition.Requisition requisition) {
-        final Requisition internalRequisition = new Requisition();
-        internalRequisition.setForeignSource(requisition.getForeignSource());
-        if (requisition.getGeneratedAt() != null) {
-            internalRequisition.setDate(requisition.getGeneratedAt());
-        }
-        for (org.opennms.integration.api.v1.config.requisition.RequisitionNode node : requisition.getNodes()) {
-            internalRequisition.insertNode(toRequisitionNode(node));
-        }
-        return internalRequisition;
-    }
-
-    private static RequisitionNode toRequisitionNode(org.opennms.integration.api.v1.config.requisition.RequisitionNode node) {
-        final RequisitionNode internalNode = new RequisitionNode();
-        internalNode.setForeignId(node.getForeignId());
-        internalNode.setLocation(node.getLocation());
-        internalNode.setNodeLabel(node.getNodeLabel());
-        for (org.opennms.integration.api.v1.config.requisition.RequisitionInterface iface : node.getInterfaces()) {
-            internalNode.putInterface(toRequisitionInterface(iface));
-        }
-        for (String categoryName : node.getCategories()) {
-            internalNode.putCategory(new RequisitionCategory(categoryName));
-        }
-        for (org.opennms.integration.api.v1.config.requisition.RequisitionAsset asset : node.getAssets()) {
-            internalNode.putAsset(new RequisitionAsset(asset.getName(), asset.getValue()));
-        }
-        return internalNode;
-    }
-
-    private static RequisitionInterface toRequisitionInterface(org.opennms.integration.api.v1.config.requisition.RequisitionInterface iface) {
-        final RequisitionInterface internalIface = new RequisitionInterface();
-        internalIface.setIpAddr(InetAddressUtils.toIpAddrString(iface.getIpAddress()));
-        internalIface.setDescr(iface.getDescription());
-        if (iface.getSnmpPrimary() != null) {
-            final PrimaryType primaryType;
-            switch(iface.getSnmpPrimary()) {
-                case SECONDARY:
-                    primaryType = PrimaryType.SECONDARY;
-                    break;
-                case PRIMARY:
-                    primaryType = PrimaryType.PRIMARY;
-                    break;
-                case NOT_ELIGIBLE:
-                default:
-                    primaryType = PrimaryType.NOT_ELIGIBLE;
-            }
-            internalIface.setSnmpPrimary(primaryType);
-        }
-        for (String monitoredServiceName : iface.getMonitoredServices()) {
-            internalIface.putMonitoredService(new RequisitionMonitoredService(monitoredServiceName));
-        }
-        return internalIface;
     }
 
     private static class WrappedRequisitionRequest implements RequisitionRequest {
