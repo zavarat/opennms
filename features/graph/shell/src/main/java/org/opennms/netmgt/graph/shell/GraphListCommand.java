@@ -58,6 +58,7 @@ public class GraphListCommand implements Action {
             // Print containers
             System.out.println("Registered Graph Containers:");
             final int maxContainerIdLength = graphContainerInfoList.stream().mapToInt(ci -> ci.getId().length()).max().getAsInt();
+            // FIXME: Assumes label is non-null
             final int maxContainerLabelLength = graphContainerInfoList.stream().mapToInt(ci -> ci.getLabel().length()).max().getAsInt();
             final String ContainerRowFormat = String.format(CONTAINER_ROW_TEMPLATE, maxContainerIdLength > "Container ID".length() ? maxContainerIdLength : "Container ID".length(), maxContainerLabelLength, MAX_DESCRIPTION_LENGTH);
             System.out.println(String.format(ContainerRowFormat, "Container ID", "Label", "Description", "Graph Namespaces"));
@@ -69,6 +70,7 @@ public class GraphListCommand implements Action {
             // Print graphs
             System.out.println();
             System.out.println("Registered Graphs:");
+            //FIXME: Assumes there are some registered graphs
             final List<GraphInfo> graphInfos = graphContainerInfoList.stream().flatMap(ci -> ci.getGraphInfos().stream()).collect(Collectors.toList());
             final int maxNamespaceLength = graphInfos.stream().mapToInt(gi -> gi.getNamespace().length()).max().getAsInt();
             final int maxGraphLabelLength = graphInfos.stream().mapToInt(gi -> gi.getLabel() != null ? gi.getLabel().length() : 0).max().getAsInt();
