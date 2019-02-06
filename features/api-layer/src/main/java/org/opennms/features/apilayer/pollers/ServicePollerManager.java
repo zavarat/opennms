@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
  */
 public class ServicePollerManager extends InterfaceMapper<ServicePollerFactory, ServiceMonitor> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(InterfaceMapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServicePollerManager.class);
 
     public ServicePollerManager(BundleContext bundleContext) {
         super(ServiceMonitor.class, bundleContext);
