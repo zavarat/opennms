@@ -33,6 +33,28 @@
 	<jsp:param name="useionicons" value="true" />
 </jsp:include>
 
+<div>
+	<div class="alert alert-severity-normal">Normal</div>
+	<div class="alert alert-severity-warning">Warning</div>
+	<div class="alert alert-severity-minor">Minor</div>
+	<div class="alert alert-severity-major">Major</div>
+	<div class="alert alert-severity-critical">Critical</div>
+	<div class="alert alert-severity-indeterminate">Indeterminate</div>
+	<div class="alert alert-severity-cleared">Cleared</div>
+
+</div>
+
+<div class="mb-4">
+	<span class="badge badge-severity-normal">Normal</span>
+	<span class="badge badge-severity-warning">Warning</span>
+	<span class="badge badge-severity-minor">Minor</span>
+	<span class="badge badge-severity-major">Major</span>
+	<span class="badge badge-severity-critical">Critical</span>
+	<span class="badge badge-severity-indeterminate">Indeterminate</span>
+	<span class="badge badge-severity-cleared">Cleared</span>
+
+</div>
+
 <div class="row">
 	<!-- Left Column -->
 	<div class="col-md-3" id="index-contentleft">

@@ -11,10 +11,17 @@ $table-border-color: #ddd !default;
 
 // Add custom colors to the theme
 $theme-colors: (
-    "horizon": $color_horizon,
-    "meridian": $color_meridian,
+    "horizon":                $color_horizon,
+    "meridian":               $color_meridian,
     // Additional colors may be added here, e.g. "severity-normal"
     // to allow alerts, badges, buttons, etc to be colored accordingly
+    "severity-critical":      #f5cdcd,
+    "severity-major":         #ffd7cd,
+    "severity-minor":         #ffebcd,
+    "severity-warning":       #fff5cd,
+    "severity-indeterminate": #ebebcd,
+    "severity-normal":        #d7e1cd,
+    "severity-cleared":       #eeeeee
 );
 
 // Spacing of cards is a bit too much by default.
