@@ -19,11 +19,21 @@ executors:
     docker:
       - image: opennms/package-cloud-cli:0.3.05-b1
 
+  shellcheck-executor:
+    docker:
+      - image: opennms/shellcheck:0.5.0-b1
+
 workflows:
   build-deploy:
     jobs:
       # Run build jobs for all branches and any tag
       - pre-build:
+          filters:
+            tags:
+              only: /.*/
+      - validate-scripts:
+          requires:
+            - pre-build
           filters:
             tags:
               only: /.*/
@@ -39,13 +49,22 @@ jobs:
           command: |
             .circleci/scripts/system-info.sh
 
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
+
+  validate-scripts:
+    executor: shellcheck-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Validate scripts with shellcheck
+          command: |
+            antora generate site.yml
       - run:
           name: Test scripts with shellcheck
           command: |
             find .circleci -type f -name '*.sh' | wc -l
             find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
-
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project
