@@ -1,0 +1,51 @@
+version: 2.1
+
+executors:
+  build-executor:
+    docker:
+      - image: opennms/build-env:1.0-b4
+        environment:
+          MAVEN_OPTS: -Xmx2g -XX:ReservedCodeCacheSize=512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:-UseGCOverheadLimit -XX:+UseParallelGC -XX:+UseParallelOldGC
+
+  docs-executor:
+    docker:
+      - image: antora/antora:2.0.0
+
+  netlify-cli-executor:
+    docker:
+      - image: opennms/netlify-cli:2.8.3-b1
+
+  package-cloud-cli-executor:
+    docker:
+      - image: opennms/package-cloud-cli:0.3.05-b1
+
+workflows:
+  build-deploy:
+    jobs:
+      # Run build jobs for all branches and any tag
+      - pre-build:
+          filters:
+            tags:
+              only: /.*/
+
+jobs:
+  pre-build:
+    executor: build-executor
+    steps:
+      - checkout
+
+      - run:
+          name: Show build information
+          command: |
+            .circleci/scripts/system-info.sh
+
+      - run:
+          name: Test scripts with shellcheck
+          command: |
+            find .circleci -type f -name '*.sh' | wc -l
+            find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
