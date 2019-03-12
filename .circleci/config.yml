@@ -3,7 +3,7 @@ version: 2.1
 executors:
   build-executor:
     docker:
-      - image: opennms/build-env:1.0-b4
+      - image: opennms/build-env:1.0-b5
         environment:
           MAVEN_OPTS: -Xmx2g -XX:ReservedCodeCacheSize=512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:-UseGCOverheadLimit -XX:+UseParallelGC -XX:+UseParallelOldGC
 
@@ -21,7 +21,7 @@ executors:
 
   shellcheck-executor:
     docker:
-      - image: opennms/shellcheck:0.5.0-b1
+      - image: opennms/shellcheck:0.5.0-b2
 
 workflows:
   build-deploy:
@@ -43,12 +43,10 @@ jobs:
     executor: build-executor
     steps:
       - checkout
-
       - run:
           name: Show build information
           command: |
             .circleci/scripts/system-info.sh
-
       - persist_to_workspace:
           root: ~/
           paths:
@@ -61,10 +59,6 @@ jobs:
           at: ~/
       - run:
           name: Validate scripts with shellcheck
-          command: |
-            antora generate site.yml
-      - run:
-          name: Test scripts with shellcheck
           command: |
             find .circleci -type f -name '*.sh' | wc -l
             find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
