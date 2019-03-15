@@ -46,7 +46,10 @@ jobs:
       - run:
           name: Show build information
           command: |
-            .circleci/scripts/system-info.sh
+            .circleci/scripts/system-info.sh > system-info.txt
+      - store_artifacts:
+          path: system-info.txt
+          destination: system-info.txt
       - persist_to_workspace:
           root: ~/
           paths:
