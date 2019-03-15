@@ -77,7 +77,7 @@ jobs:
           name: Validate scripts with shellcheck
           command: |
             find .circleci -type f -name '*.sh' | wc -l
-            find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
+            find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013,SC2154,SC2155
       - run:
           name: Validate Maven project
           command: |
