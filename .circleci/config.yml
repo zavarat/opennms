@@ -23,6 +23,28 @@ executors:
     docker:
       - image: opennms/shellcheck:0.5.0-b2
 
+commands:
+  set-environment:
+    description: "Initialize build with setting environment variables"
+    steps:
+      - run: .circleci/scripts/pre-build.sh
+
+  restore-maven-cache:
+      description: "Calculate cache key and restore cache"
+      steps:
+        - run: find . -type f -name "pom.xml" -exec sha256sum "{}" \; >> maven-dependency-cache.key
+        - restore_cache:
+            keys:
+              - maven-dependencies-v1-{{ checksum "maven-dependency-cache.key" }}
+              - maven-dependencies-v1-
+
+  save-maven-cache:
+    description: "Save Maven dependency cache"
+    steps:
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-dependencies-v1-{{ checksum "maven-dependency-cache.key" }}
 workflows:
   build-deploy:
     jobs:
@@ -32,6 +54,12 @@ workflows:
             tags:
               only: /.*/
       - validate-scripts:
+          requires:
+            - pre-build
+          filters:
+            tags:
+              only: /.*/
+      - verify-maven:
           requires:
             - pre-build
           filters:
@@ -65,3 +93,16 @@ jobs:
           command: |
             find .circleci -type f -name '*.sh' | wc -l
             find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
+
+  verify-maven:
+    executor: build-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - set-environment
+      - restore-maven-cache
+      - run:
+          name: Run clean to validate project
+          command: |
+            .circleci/scripts/maven-validate.sh
+      - save-maven-cache
