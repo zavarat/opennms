@@ -24,7 +24,7 @@ df -h
 echo ""
 
 echo "Java Info"
-java -version
+java -version 2>&1
 echo ""
 
 echo "Maven Info"
