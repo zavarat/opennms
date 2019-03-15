@@ -130,4 +130,8 @@ jobs:
           name: Compile source code with Maven
           command: |
             .circleci/scripts/maven-compile.sh
+      - run:
+          name: Generate Java doc
+          command: |
+            .circleci/scripts/maven-javadoc.sh
       - save-maven-cache
