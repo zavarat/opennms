@@ -29,3 +29,11 @@ echo ""
 
 echo "Maven Info"
 mvn -version
+
+echo "Current working dir"
+pwd
+echo ""
+
+echo "Current working dir content"
+ls -l 
+echo ""

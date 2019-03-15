@@ -66,11 +66,11 @@ jobs:
   pre-build:
     executor: build-executor
     steps:
+      - checkout
       - run:
           name: Show build information
           command: |
             .circleci/scripts/system-info.sh > system-info.txt
-      - checkout
       - restore-maven-cache
       - set-environment
       - run:
