@@ -1,17 +1,22 @@
 #!/bin/bash -e
-DIR=$(cd $(dirname "$0") && pwd )
 
-TOPDIR=$( cd "${DIR}/../../.."; pwd )
+MYDIR=$(dirname "$0")
+TOPDIR=$(cd "$MYDIR"; pwd)
+
 WORKDIR="$TOPDIR/target/rpm"
 BRANCH=""
 COMMIT=""
+
+JAVA_HOME=$("$TOPDIR/bin/javahome.pl")
+
+export PATH="$TOPDIR/maven/bin:$JAVA_HOME/bin:$PATH"
 
 cd "$TOPDIR"
 
 BINARIES="expect rpmbuild rsync makensis"
 
 function exists() {
-    which "$1" >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1
 }
 
 function use_git() {
@@ -20,7 +25,7 @@ function use_git() {
 
 function run()
 {
-    if exists $1; then
+    if exists "$1"; then
         "$@"
     else
         die "Command not found: $1"
@@ -42,7 +47,6 @@ function usage()
 {
     tell "makerpm [-h] [-a] [-s <password>] [-g <gpg-id>] [-M <major>] [-m <minor>] [-u <micro>]"
     tell "\t-h : print this help"
-    tell "\t-t : check binaries only"
     tell "\t-a : assembly-only (skip the compile step)"
     tell "\t-d : disable downloading snapshots when doing an assembly-only build"
     tell "\t-s <password> : sign the rpm using this password for the gpg key"
@@ -125,11 +129,6 @@ function version()
     head -n 1
 }
 
-function pomversion()
-{
-    grep '<version>' pom.xml | head -n 1 | sed -e 's,^[^>]*>,,' -e 's,<.*$,,'
-}
-
 function skipCompile()
 {
     if $ASSEMBLY_ONLY; then echo 1; else echo 0; fi
@@ -158,7 +157,7 @@ function main()
     local RELEASE_MICRO=1
 
 
-    while getopts adhrts:g:n:x:M:m:u:b:c: OPT; do
+    while getopts adhrs:g:n:x:M:m:u:b:c: OPT; do
         case $OPT in
             a)  ASSEMBLY_ONLY=true
                 ;;
@@ -185,8 +184,6 @@ function main()
                 ;;
             c)  COMMIT="$OPTARG"
                 ;;
-            t)  exit 0
-		;;
             *)  usage
                 ;;
         esac
@@ -200,52 +197,49 @@ function main()
     EXTRA_INFO=$(extraInfo)
     EXTRA_INFO2=$(extraInfo2)
     VERSION=$(version)
-    POMVERSION=$(pomversion)
 
     if $BUILD_RPM; then
         echo "==== Building OpenNMS RPMs ===="
         echo
-        echo "DIR: " $TOPDIR
-        echo "WORKING_DIR: " $WORKDIR
-        echo
-        echo "Version: " $VERSION
-        echo "Release: " $RELEASE
+        echo "Version:  $VERSION"
+        echo "Release:  $RELEASE"
         echo
 
         echo "=== Creating Working Directories ==="
         run install -d -m 755 "$WORKDIR/tmp/$PACKAGE_NAME-$VERSION-$RELEASE"
         run install -d -m 755 "$WORKDIR"/{BUILD,RPMS/{i386,i686,noarch},SOURCES,SPECS,SRPMS}
-        run install -d -m 755 "${WORKDIR}/BUILD/${PACKAGE_NAME}-${VERSION}-${RELEASE}"
 
-        echo "=== Copying *.tar.gz to SOURCES Directory ==="
-        run find . -type f -name "*.tar.gz" -not -path "./target/rpm/*" -exec cp -v {} "${WORKDIR}/SOURCES" \;
-        run cp -v README* "${WORKDIR}/BUILD/${PACKAGE_NAME}-${VERSION}-${RELEASE}";
+        echo "=== Copying Source to Source Directory ==="
+        run rsync -aqr --exclude=.git --exclude=.svn --exclude=target --delete --delete-excluded "$TOPDIR/" "$WORKDIR/tmp/$PACKAGE_NAME-$VERSION-$RELEASE/"
 
-        # DEFINE Specs
-        SPECS="${DIR}/../specs/opennms.spec ${DIR}/../specs/minion.spec"
+        echo "=== Creating a tar.gz Archive of the Source in $WORKDIR/tmp/$PACKAGE_NAME-$VERSION-$RELEASE ==="
+        run tar zcf "$WORKDIR/SOURCES/${PACKAGE_NAME}-source-$VERSION-$RELEASE.tar.gz" -C "$WORKDIR/tmp" "${PACKAGE_NAME}-$VERSION-$RELEASE"
+
+        SPECS="tools/packages/opennms/opennms.spec tools/packages/minion/minion.spec tools/packages/sentinel/sentinel.spec"
         if [ "$PACKAGE_NAME" = "opennms" ]; then
-            SPECS="$SPECS ${DIR}/../specs/opennms-plugin-ticketer-centric.spec"
+                run tar zcf "$WORKDIR/SOURCES/centric-troubleticketer.tar.gz" -C "$WORKDIR/tmp/$PACKAGE_NAME-$VERSION-$RELEASE/opennms-tools" "centric-troubleticketer"
+                SPECS="$SPECS opennms-tools/centric-troubleticketer/src/main/rpm/opennms-plugin-ticketer-centric.spec"
         fi
 
+        #SPECS="tools/packages/sentinel/sentinel.spec"
         echo "=== Building RPMs ==="
         for spec in $SPECS
         do
             run rpmbuild -bb \
+                --define "skip_compile $(skipCompile)" \
                 --define "enable_snapshots $(enableSnapshots)" \
                 --define "extrainfo $EXTRA_INFO" \
                 --define "extrainfo2 $EXTRA_INFO2" \
                 --define "_topdir $WORKDIR" \
                 --define "_tmppath $WORKDIR/tmp" \
                 --define "version $VERSION" \
-                --define "pomversion $POMVERSION" \
                 --define "releasenumber $RELEASE" \
                 --define "_name $PACKAGE_NAME" \
                 --define "_descr $PACKAGE_DESCRIPTION" \
-                $spec || die "failed to build $spec"
+                "$spec" || die "failed to build $spec"
         done
     fi
 
-    # Optionally sign the rpms
     if $SIGN; then
 
         RPMS=$(echo "$WORKDIR"/RPMS/noarch/*.rpm)
@@ -263,7 +257,7 @@ function main()
 }
 
 for BIN in $BINARIES; do
-        EXECUTABLE=`which $BIN 2>/dev/null || :`
+        EXECUTABLE=$(command -v "$BIN" 2>/dev/null || :)
         if [ -z "$EXECUTABLE" ] || [ ! -x "$EXECUTABLE" ]; then
                 echo "ERROR: $BIN not found"
                 exit 1
