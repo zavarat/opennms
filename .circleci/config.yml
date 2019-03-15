@@ -27,12 +27,18 @@ commands:
   set-environment:
     description: "Initialize build with setting environment variables"
     steps:
-      - run: .circleci/scripts/pre-build.sh
+      - run:
+          name: Set environment to prepare build
+          command: |
+            .circleci/scripts/pre-build.sh
 
   restore-maven-cache:
       description: "Calculate cache key and restore cache"
       steps:
-        - run: find . -type f -name "pom.xml" -exec sha256sum "{}" \; >> maven-dependency-cache.key
+        - run: 
+            name: Calculate cache key from pom files
+            command: |
+              find . -type f -name "pom.xml" -exec sha256sum "{}" \; >> maven-dependency-cache.key
         - restore_cache:
             keys:
               - maven-dependencies-v1-{{ checksum "maven-dependency-cache.key" }}
@@ -53,15 +59,21 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - validate-scripts:
+      - scripts-validate:
           requires:
             - pre-build
           filters:
             tags:
               only: /.*/
-      - verify-maven:
+      - maven-validate:
           requires:
-            - pre-build
+            - scripts-validate
+          filters:
+            tags:
+              only: /.*/
+      - maven-compile:
+          requires:
+            - maven-validate
           filters:
             tags:
               only: /.*/
@@ -83,7 +95,7 @@ jobs:
           paths:
             - project
 
-  validate-scripts:
+  scripts-validate:
     executor: shellcheck-executor
     steps:
       - attach_workspace:
@@ -94,7 +106,7 @@ jobs:
             find .circleci -type f -name '*.sh' | wc -l
             find .circleci -type f -name '*.sh' | xargs shellcheck --external-sources -e SC2129,SC2001,SC2013
 
-  verify-maven:
+  maven-validate:
     executor: build-executor
     steps:
       - attach_workspace:
@@ -105,4 +117,17 @@ jobs:
           name: Run clean to validate project
           command: |
             .circleci/scripts/maven-validate.sh
+      - save-maven-cache
+
+  maven-compile:
+    executor: build-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - set-environment
+      - restore-maven-cache
+      - run:
+          name: Compile source code with Maven
+          command: |
+            .circleci/scripts/maven-compile.sh
       - save-maven-cache

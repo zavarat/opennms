@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Pre-build script invoked"
 
-GIT_BRANCH=${CIRCLE_BRANCH:-$(git branch | grep -e "\*" | cut -d' ' -f2 )}
+GIT_BRANCH=${CIRCLE_BRANCH:-$(git branch | grep -e '\*' | cut -d' ' -f2 )}
 VERSION=$( grep '<version>' pom.xml | sed -e 's,^[^>]*>,,' -e 's,<.*$,,' -e 's,-[^-]*-SNAPSHOT$,,' -e 's,-SNAPSHOT$,,' -e 's,-testing$,,' -e 's,-,.,g' | head -n 1 )
 RELEASE_BUILD_KEY="onms"
 RELEASE_BRANCH=${GIT_BRANCH/\//-}
