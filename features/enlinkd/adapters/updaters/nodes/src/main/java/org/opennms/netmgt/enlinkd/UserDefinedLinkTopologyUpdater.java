@@ -96,13 +96,15 @@ public class UserDefinedLinkTopologyUpdater extends TopologyUpdater {
         // Now create the edges
         for (UserDefinedLink udl : udls) {
             final String uniqueLinkId = Integer.toString(udl.getDbId());
-            topology.addEdge(
-                    OnmsTopologyEdge.create(
-                            uniqueLinkId,
-                            OnmsTopologyPort.create(uniqueLinkId + "|A", nodeVertexMap.get(udl.getNodeIdA()), null),
-                            OnmsTopologyPort.create(uniqueLinkId + "|Z", nodeVertexMap.get(udl.getNodeIdZ()), null)
-                    )
-            );
+            final OnmsTopologyPort sourcePort = OnmsTopologyPort.create(uniqueLinkId + "|A", nodeVertexMap.get(udl.getNodeIdA()), null);
+            sourcePort.setToolTipText(udl.getComponentLabelA());
+
+            final OnmsTopologyPort targetPort = OnmsTopologyPort.create(uniqueLinkId + "|Z", nodeVertexMap.get(udl.getNodeIdZ()), null);
+            targetPort.setToolTipText(udl.getComponentLabelA());
+
+            final OnmsTopologyEdge edge = OnmsTopologyEdge.create(uniqueLinkId, sourcePort, targetPort);
+            edge.setToolTipText(udl.getLinkLabel());
+            topology.addEdge(edge);
         }
 
         return topology;
