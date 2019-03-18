@@ -5,7 +5,7 @@ executors:
     docker:
       - image: opennms/build-env:1.0-b6
         environment:
-          MAVEN_OPTS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xmx2g -XX:ReservedCodeCacheSize=512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:-UseGCOverheadLimit -XX:+UseParallelGC -XX:+UseParallelOldGC
+          MAVEN_OPTS: -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -Xmx1g -XX:MaxMetaspaceSize=2g -XX:ReservedCodeCacheSize=512m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:-UseGCOverheadLimit -XX:+UseParallelGC -XX:+UseParallelOldGC
 
   docs-executor:
     docker:
@@ -98,6 +98,10 @@ jobs:
           at: ~/
       - set-environment
       - restore-maven-cache
+      - run:
+          name: Compile Check Style module
+          command: |
+            .circleci/scripts/maven-checkstyle.sh   
       - run:
           name: Compile source code with Maven and generate Java docs
           command: |
