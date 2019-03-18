@@ -44,35 +44,40 @@ public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
     private final SessionUtils sessionUtils;
 
     public UserDefinedLinkDaoImpl(org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao userDefinedLinkDao, SessionUtils sessionUtils) {
-        this.userDefinedLinkDao = Objects.requireNonNull(userDefinedLinkDao);
+        this.userDefinedLinkDao = userDefinedLinkDao;
         this.sessionUtils = Objects.requireNonNull(sessionUtils);
     }
 
     @Override
     public List<UserDefinedLink> getLinks() {
+        ensureDaoIsAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.findAll().stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getOutLinks(int nodeIdA) {
+        ensureDaoIsAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getOutLinks(nodeIdA).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getInLinks(int nodeIdZ) {
+        ensureDaoIsAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getInLinks(nodeIdZ).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));}
 
     @Override
     public List<UserDefinedLink> getLinksWithLabel(String label) {
+        ensureDaoIsAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getLinksWithLabel(label).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public UserDefinedLink saveOrUpdate(UserDefinedLink link) {
+        ensureDaoIsAvailable();
         return sessionUtils.withTransaction(() -> {
             final org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink = toModelLink(link);
             userDefinedLinkDao.save(modelLink);
@@ -83,6 +88,7 @@ public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
 
     @Override
     public void delete(UserDefinedLink link) {
+        ensureDaoIsAvailable();
         sessionUtils.withTransaction(() -> {
             userDefinedLinkDao.delete(link.getDbId());
             return null;
@@ -91,12 +97,19 @@ public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
 
     @Override
     public void delete(Collection<UserDefinedLink> links) {
+        ensureDaoIsAvailable();
         sessionUtils.withTransaction(() -> {
             for (UserDefinedLink link : links) {
                 userDefinedLinkDao.delete(link.getDbId());
             }
             return null;
         });
+    }
+
+    private void ensureDaoIsAvailable() {
+        if (userDefinedLinkDao == null) {
+            throw new IllegalStateException("Required DAO is not available. Ensure the Enlinkd service is enabled.");
+        }
     }
 
     protected static UserDefinedLink toApiLink(org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink) {
@@ -118,10 +131,10 @@ public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
         modelLink.setOwner(apiLink.getOwner());
         modelLink.setLinkId(apiLink.getLinkId());
         modelLink.setLinkLabel(apiLink.getLinkLabel());
-        modelLink.setNodeIdA(modelLink.getNodeIdA());
-        modelLink.setNodeIdZ(modelLink.getNodeIdZ());
-        modelLink.setComponentLabelA(modelLink.getComponentLabelA());
-        modelLink.setComponentLabelZ(modelLink.getComponentLabelZ());
+        modelLink.setNodeIdA(apiLink.getNodeIdA());
+        modelLink.setNodeIdZ(apiLink.getNodeIdZ());
+        modelLink.setComponentLabelA(apiLink.getComponentLabelA());
+        modelLink.setComponentLabelZ(apiLink.getComponentLabelZ());
         return modelLink;
     }
 }

@@ -84,7 +84,7 @@ public class UserDefinedLinkDaoHibernateIT {
         OnmsNode node1 = populator.getNode1();
         OnmsNode node2 = populator.getNode2();
 
-        // Create one
+        // Create
         UserDefinedLink link = new UserDefinedLink();
         link.setNodeIdA(node1.getId());
         link.setNodeIdZ(node2.getId());
@@ -95,7 +95,25 @@ public class UserDefinedLinkDaoHibernateIT {
 
         assertThat(userDefinedLinkDao.findAll(), hasSize(1));
 
-        // Delete one
+        // In
+        assertThat(userDefinedLinkDao.getInLinks(node1.getId()), hasSize(0));
+        assertThat(userDefinedLinkDao.getInLinks(node2.getId()), hasSize(1));
+
+        // Out
+        assertThat(userDefinedLinkDao.getOutLinks(node1.getId()), hasSize(1));
+        assertThat(userDefinedLinkDao.getOutLinks(node2.getId()), hasSize(0));
+
+        // Lookup by label
+        assertThat(userDefinedLinkDao.getLinksWithLabel("my link"), hasSize(1));
+
+        // Update
+        link.setLinkLabel("not your link");
+        userDefinedLinkDao.update(link);
+
+        assertThat(userDefinedLinkDao.getLinksWithLabel("my link"), hasSize(0));
+        assertThat(userDefinedLinkDao.getLinksWithLabel("not your link"), hasSize(1));
+
+        // Delete
         userDefinedLinkDao.delete(link);
 
         // Back to empty

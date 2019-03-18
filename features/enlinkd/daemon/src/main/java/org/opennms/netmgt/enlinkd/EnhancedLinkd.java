@@ -419,6 +419,10 @@ public class EnhancedLinkd extends AbstractServiceDaemon implements ReloadableTo
             m_nodesTopologyUpdater.forceRun();
             break;
 
+        case USERDEFINED:
+            m_userDefinedLinkTopologyUpdater.forceRun();
+            break;
+
         default:
             break;
         
@@ -460,6 +464,10 @@ public class EnhancedLinkd extends AbstractServiceDaemon implements ReloadableTo
 
             case NODES:
                 m_nodesTopologyUpdater.runDiscovery();
+                break;
+
+            case USERDEFINED:
+                m_userDefinedLinkTopologyUpdater.runDiscovery();
                 break;
 
             default:

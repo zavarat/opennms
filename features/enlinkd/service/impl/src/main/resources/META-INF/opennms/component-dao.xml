@@ -20,7 +20,6 @@
     <onmsgi:service interface="org.opennms.netmgt.enlinkd.service.api.NodeTopologyService" ref="nodeTopologyService" />
 
     <bean id="userDefinedLinkTopologyService" class="org.opennms.netmgt.enlinkd.service.impl.UserDefinedLinkTopologyServiceImpl">
-        <property name="nodeDao" ref="nodeDao" />
         <property name="topologyEntityCache" ref="topologyEntityCache" />
     </bean>
     <onmsgi:service interface="org.opennms.netmgt.enlinkd.service.api.UserDefinedLinkTopologyService" ref="userDefinedLinkTopologyService" />

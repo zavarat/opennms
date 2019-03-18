@@ -45,12 +45,14 @@ public class UserDefinedLinkTopologyServiceImpl extends TopologyServiceImpl impl
         return userDefinedLinkDao.findAll();
     }
 
-    void saveOrUpdate(UserDefinedLink udl) {
+    @Override
+    public void saveOrUpdate(UserDefinedLink udl) {
         userDefinedLinkDao.save(udl);
         updatesAvailable();
     }
 
-    void delete(UserDefinedLink udl) {
+    @Override
+    public void delete(UserDefinedLink udl) {
         userDefinedLinkDao.delete(udl);
         updatesAvailable();
     }
