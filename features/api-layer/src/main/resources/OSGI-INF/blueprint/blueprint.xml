@@ -259,4 +259,9 @@
     </bean>
   </service>
 
+  <!-- Topology -->
+  <service interface="org.opennms.integration.api.v1.topology.UserDefinedLinkDao" >
+    <bean class="org.opennms.features.apilayer.topology.UserDefinedLinkDaoImpl"/>
+  </service>
+
 </blueprint>
