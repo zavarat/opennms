@@ -26,31 +26,33 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.netmgt.enlinkd.persistence.impl;
+package org.opennms.netmgt.enlinkd.service.impl;
 
 import java.util.List;
 
-import org.opennms.netmgt.dao.hibernate.AbstractDaoHibernate;
 import org.opennms.netmgt.enlinkd.model.UserDefinedLink;
 import org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao;
+import org.opennms.netmgt.enlinkd.service.api.UserDefinedLinkTopologyService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class UserDefinedLinkDaoHibernate extends AbstractDaoHibernate<UserDefinedLink, Integer> implements UserDefinedLinkDao {
-    public UserDefinedLinkDaoHibernate() {
-        super(UserDefinedLink.class);
-    }
+public class UserDefinedLinkTopologyServiceImpl extends TopologyServiceImpl implements UserDefinedLinkTopologyService {
 
-    @Override
-    public List<UserDefinedLink> getOutLinks(int nodeIdA) {
-        return find("from UserDefinedLink udl where udl.node_id_a = ?", nodeIdA);
-    }
+    @Autowired
+    private UserDefinedLinkDao userDefinedLinkDao;
 
     @Override
-    public List<UserDefinedLink> getInLinks(int nodeIdZ) {
-        return find("from UserDefinedLink udl where udl.node_id_z = ?", nodeIdZ);
+    public List<UserDefinedLink> findAllUserDefinedLinks() {
+        return userDefinedLinkDao.findAll();
     }
 
-    @Override
-    public List<UserDefinedLink> getLinksWithLabel(String label) {
-        return find("from UserDefinedLink udl where udl.link_label = ?", label);
+    void saveOrUpdate(UserDefinedLink udl) {
+        userDefinedLinkDao.save(udl);
+        updatesAvailable();
     }
+
+    void delete(UserDefinedLink udl) {
+        userDefinedLinkDao.delete(udl);
+        updatesAvailable();
+    }
+
 }

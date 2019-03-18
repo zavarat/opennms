@@ -29,12 +29,13 @@
 package org.opennms.features.apilayer.topology;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.opennms.integration.api.v1.topology.UserDefinedLink;
 import org.opennms.integration.api.v1.topology.UserDefinedLinkDao;
+import org.opennms.integration.api.v1.topology.beans.UserDefinedLinkBean;
 import org.opennms.netmgt.dao.api.SessionUtils;
 
 public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
@@ -49,36 +50,78 @@ public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
 
     @Override
     public List<UserDefinedLink> getLinks() {
-        return Collections.emptyList();
+        return sessionUtils.withReadOnlyTransaction(() ->
+                userDefinedLinkDao.findAll().stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getOutLinks(int nodeIdA) {
-        return Collections.emptyList();
+        return sessionUtils.withReadOnlyTransaction(() ->
+                userDefinedLinkDao.getOutLinks(nodeIdA).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getInLinks(int nodeIdZ) {
-        return Collections.emptyList();
-    }
+        return sessionUtils.withReadOnlyTransaction(() ->
+                userDefinedLinkDao.getInLinks(nodeIdZ).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));}
 
     @Override
     public List<UserDefinedLink> getLinksWithLabel(String label) {
-        return Collections.emptyList();
+        return sessionUtils.withReadOnlyTransaction(() ->
+                userDefinedLinkDao.getLinksWithLabel(label).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public UserDefinedLink saveOrUpdate(UserDefinedLink link) {
-        return null;
+        return sessionUtils.withTransaction(() -> {
+            final org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink = toModelLink(link);
+            userDefinedLinkDao.save(modelLink);
+            userDefinedLinkDao.flush();
+            return toApiLink(modelLink);
+        });
     }
 
     @Override
     public void delete(UserDefinedLink link) {
-
+        sessionUtils.withTransaction(() -> {
+            userDefinedLinkDao.delete(link.getDbId());
+            return null;
+        });
     }
 
     @Override
     public void delete(Collection<UserDefinedLink> links) {
+        sessionUtils.withTransaction(() -> {
+            for (UserDefinedLink link : links) {
+                userDefinedLinkDao.delete(link.getDbId());
+            }
+            return null;
+        });
+    }
 
+    protected static UserDefinedLink toApiLink(org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink) {
+        return UserDefinedLinkBean.builder()
+                .dbId(modelLink.getDbId())
+                .owner(modelLink.getOwner())
+                .linkId(modelLink.getLinkId())
+                .linkLabel(modelLink.getLinkLabel())
+                .nodeIdA(modelLink.getNodeIdA())
+                .nodeIdZ(modelLink.getNodeIdZ())
+                .componentLabelA(modelLink.getComponentLabelA())
+                .componentLabelZ(modelLink.getComponentLabelZ())
+                .build();
+    }
+
+    protected static org.opennms.netmgt.enlinkd.model.UserDefinedLink toModelLink(UserDefinedLink apiLink) {
+        final org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink = new org.opennms.netmgt.enlinkd.model.UserDefinedLink();
+        modelLink.setDbId(apiLink.getDbId());
+        modelLink.setOwner(apiLink.getOwner());
+        modelLink.setLinkId(apiLink.getLinkId());
+        modelLink.setLinkLabel(apiLink.getLinkLabel());
+        modelLink.setNodeIdA(modelLink.getNodeIdA());
+        modelLink.setNodeIdZ(modelLink.getNodeIdZ());
+        modelLink.setComponentLabelA(modelLink.getComponentLabelA());
+        modelLink.setComponentLabelZ(modelLink.getComponentLabelZ());
+        return modelLink;
     }
 }

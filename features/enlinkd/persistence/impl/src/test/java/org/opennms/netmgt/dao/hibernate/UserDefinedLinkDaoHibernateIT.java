@@ -35,11 +35,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opennms.core.test.OpenNMSJUnit4ClassRunner;
 import org.opennms.core.test.db.annotations.JUnitTemporaryDatabase;
+import org.opennms.netmgt.dao.DatabasePopulator;
 import org.opennms.netmgt.enlinkd.model.UserDefinedLink;
 import org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao;
+import org.opennms.netmgt.model.OnmsNode;
 import org.opennms.test.JUnitConfigurationEnvironment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.transaction.AfterTransaction;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(OpenNMSJUnit4ClassRunner.class)
@@ -58,14 +62,35 @@ public class UserDefinedLinkDaoHibernateIT {
     @Autowired
     private UserDefinedLinkDao userDefinedLinkDao;
 
+    @Autowired
+    private DatabasePopulator populator;
+
+    @BeforeTransaction
+    public void setUp() {
+        populator.populateDatabase();
+    }
+
+    @AfterTransaction
+    public void tearDown() {
+        populator.resetDatabase();
+    }
+
     @Test
     @Transactional
     public void canCrudLinks() {
         // No links initially
         assertThat(userDefinedLinkDao.findAll(), hasSize(0));
 
+        OnmsNode node1 = populator.getNode1();
+        OnmsNode node2 = populator.getNode2();
+
         // Create one
         UserDefinedLink link = new UserDefinedLink();
+        link.setNodeIdA(node1.getId());
+        link.setNodeIdZ(node2.getId());
+        link.setOwner("test");
+        link.setLinkId("my link id");
+        link.setLinkLabel("my link");
         userDefinedLinkDao.save(link);
 
         assertThat(userDefinedLinkDao.findAll(), hasSize(1));

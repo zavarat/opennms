@@ -36,7 +36,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="user_defined_link")
+@Table(name="user_defined_links")
 public class UserDefinedLink {
 
     private Integer nodeIdA;
@@ -48,6 +48,7 @@ public class UserDefinedLink {
     private String owner;
     private Integer dbId;
 
+    @Column(name="node_id_a", nullable = false)
     public Integer getNodeIdA() {
         return nodeIdA;
     }
@@ -56,6 +57,7 @@ public class UserDefinedLink {
         this.nodeIdA = nodeIdA;
     }
 
+    @Column(name="component_label_a")
     public String getComponentLabelA() {
         return componentLabelA;
     }
@@ -64,6 +66,7 @@ public class UserDefinedLink {
         this.componentLabelA = componentLabelA;
     }
 
+    @Column(name="node_id_z", nullable = false)
     public Integer getNodeIdZ() {
         return nodeIdZ;
     }
@@ -72,6 +75,7 @@ public class UserDefinedLink {
         this.nodeIdZ = nodeIdZ;
     }
 
+    @Column(name="component_label_z")
     public String getComponentLabelZ() {
         return componentLabelZ;
     }
@@ -80,6 +84,7 @@ public class UserDefinedLink {
         this.componentLabelZ = componentLabelZ;
     }
 
+    @Column(name="link_id", nullable = false)
     public String getLinkId() {
         return linkId;
     }
@@ -88,6 +93,7 @@ public class UserDefinedLink {
         this.linkId = linkId;
     }
 
+    @Column(name="link_label")
     public String getLinkLabel() {
         return linkLabel;
     }
@@ -96,6 +102,7 @@ public class UserDefinedLink {
         this.linkLabel = linkLabel;
     }
 
+    @Column(name="owner", nullable = false)
     public String getOwner() {
         return owner;
     }
@@ -105,7 +112,7 @@ public class UserDefinedLink {
     }
 
     @Id
-    @Column(nullable = false)
+    @Column(name="id", nullable = false)
     @SequenceGenerator(name = "opennmsSequence", sequenceName = "opennmsNxtId")
     @GeneratedValue(generator = "opennmsSequence")
     public Integer getDbId() {

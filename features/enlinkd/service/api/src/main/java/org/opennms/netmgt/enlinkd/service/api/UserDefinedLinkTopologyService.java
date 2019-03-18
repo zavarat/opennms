@@ -26,31 +26,19 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.netmgt.enlinkd.persistence.impl;
+package org.opennms.netmgt.enlinkd.service.api;
 
 import java.util.List;
 
-import org.opennms.netmgt.dao.hibernate.AbstractDaoHibernate;
+import org.opennms.netmgt.enlinkd.model.LldpElementTopologyEntity;
 import org.opennms.netmgt.enlinkd.model.UserDefinedLink;
-import org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao;
 
-public class UserDefinedLinkDaoHibernate extends AbstractDaoHibernate<UserDefinedLink, Integer> implements UserDefinedLinkDao {
-    public UserDefinedLinkDaoHibernate() {
-        super(UserDefinedLink.class);
-    }
+public interface UserDefinedLinkTopologyService extends TopologyService  {
 
-    @Override
-    public List<UserDefinedLink> getOutLinks(int nodeIdA) {
-        return find("from UserDefinedLink udl where udl.node_id_a = ?", nodeIdA);
-    }
+    List<UserDefinedLink> findAllUserDefinedLinks();
 
-    @Override
-    public List<UserDefinedLink> getInLinks(int nodeIdZ) {
-        return find("from UserDefinedLink udl where udl.node_id_z = ?", nodeIdZ);
-    }
+    void saveOrUpdate(UserDefinedLink udl);
 
-    @Override
-    public List<UserDefinedLink> getLinksWithLabel(String label) {
-        return find("from UserDefinedLink udl where udl.link_label = ?", label);
-    }
+    void delete(UserDefinedLink udl);
+
 }

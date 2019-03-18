@@ -24,6 +24,8 @@
   <reference id="eventConfDao" interface="org.opennms.netmgt.config.api.EventConfDao" availability="mandatory"/>
   <reference id="eventForwarder" interface="org.opennms.netmgt.events.api.EventForwarder" availability="mandatory"/>
   <reference id="eventSubscriptionService" interface="org.opennms.netmgt.events.api.EventSubscriptionService"/>
+  <!-- Only available when Enlinkd is enabled -->
+  <reference id="userDefinedLinkDao" interface="org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao" availability="optional"/>
 
   <bean id="nodeDaoImpl" class="org.opennms.features.apilayer.dao.NodeDaoImpl">
     <argument ref="nodeDao"/>
@@ -261,7 +263,10 @@
 
   <!-- Topology -->
   <service interface="org.opennms.integration.api.v1.topology.UserDefinedLinkDao" >
-    <bean class="org.opennms.features.apilayer.topology.UserDefinedLinkDaoImpl"/>
+    <bean class="org.opennms.features.apilayer.topology.UserDefinedLinkDaoImpl">
+      <argument ref="userDefinedLinkDao"/>
+      <argument ref="sessionUtils"/>
+    </bean>
   </service>
 
 </blueprint>

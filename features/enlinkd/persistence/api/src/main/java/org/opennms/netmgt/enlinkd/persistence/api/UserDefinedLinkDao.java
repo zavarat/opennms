@@ -28,8 +28,16 @@
 
 package org.opennms.netmgt.enlinkd.persistence.api;
 
+import java.util.List;
+
 import org.opennms.netmgt.dao.api.OnmsDao;
 import org.opennms.netmgt.enlinkd.model.UserDefinedLink;
 
 public interface UserDefinedLinkDao extends OnmsDao<UserDefinedLink, Integer> {
+
+    List<UserDefinedLink> getOutLinks(int nodeIdA);
+
+    List<UserDefinedLink> getInLinks(int nodeIdZ);
+
+    List<UserDefinedLink> getLinksWithLabel(String label);
 }
