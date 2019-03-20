@@ -37,76 +37,88 @@ import org.opennms.integration.api.v1.topology.UserDefinedLink;
 import org.opennms.integration.api.v1.topology.UserDefinedLinkDao;
 import org.opennms.integration.api.v1.topology.beans.UserDefinedLinkBean;
 import org.opennms.netmgt.dao.api.SessionUtils;
+import org.opennms.netmgt.enlinkd.service.api.UserDefinedLinkTopologyService;
 
 public class UserDefinedLinkDaoImpl implements UserDefinedLinkDao {
 
+    /**
+     * Entity DAO which should only be used for READ operations.
+     */
     private final org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao userDefinedLinkDao;
+
+    /**
+     * Topology service which should be used for all WRITE operations.
+     */
+    private final UserDefinedLinkTopologyService userDefinedLinkTopologyService;
+
     private final SessionUtils sessionUtils;
 
-    public UserDefinedLinkDaoImpl(org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao userDefinedLinkDao, SessionUtils sessionUtils) {
-        this.userDefinedLinkDao = userDefinedLinkDao;
+    public UserDefinedLinkDaoImpl(org.opennms.netmgt.enlinkd.persistence.api.UserDefinedLinkDao userDefinedLinkDao,
+                                  UserDefinedLinkTopologyService userDefinedLinkTopologyService,
+                                  SessionUtils sessionUtils) {
+        this.userDefinedLinkDao = Objects.requireNonNull(userDefinedLinkDao);
+        this.userDefinedLinkTopologyService = Objects.requireNonNull(userDefinedLinkTopologyService);
         this.sessionUtils = Objects.requireNonNull(sessionUtils);
     }
 
     @Override
     public List<UserDefinedLink> getLinks() {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.findAll().stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getOutLinks(int nodeIdA) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getOutLinks(nodeIdA).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public List<UserDefinedLink> getInLinks(int nodeIdZ) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getInLinks(nodeIdZ).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));}
 
     @Override
     public List<UserDefinedLink> getLinksWithLabel(String label) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         return sessionUtils.withReadOnlyTransaction(() ->
                 userDefinedLinkDao.getLinksWithLabel(label).stream().map(UserDefinedLinkDaoImpl::toApiLink).collect(Collectors.toList()));
     }
 
     @Override
     public UserDefinedLink saveOrUpdate(UserDefinedLink link) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         return sessionUtils.withTransaction(() -> {
             final org.opennms.netmgt.enlinkd.model.UserDefinedLink modelLink = toModelLink(link);
-            userDefinedLinkDao.save(modelLink);
-            userDefinedLinkDao.flush();
+            userDefinedLinkTopologyService.saveOrUpdate(modelLink);
             return toApiLink(modelLink);
         });
     }
 
     @Override
     public void delete(UserDefinedLink link) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         sessionUtils.withTransaction(() -> {
-            userDefinedLinkDao.delete(link.getDbId());
+            userDefinedLinkTopologyService.delete(link.getDbId());
             return null;
         });
     }
 
     @Override
     public void delete(Collection<UserDefinedLink> links) {
-        ensureDaoIsAvailable();
+        ensureServicesAreAvailable();
         sessionUtils.withTransaction(() -> {
             for (UserDefinedLink link : links) {
-                userDefinedLinkDao.delete(link.getDbId());
+                userDefinedLinkTopologyService.delete(link.getDbId());
             }
             return null;
         });
     }
 
-    private void ensureDaoIsAvailable() {
+    private void ensureServicesAreAvailable() {
         if (userDefinedLinkDao == null) {
             throw new IllegalStateException("Required DAO is not available. Ensure the Enlinkd service is enabled.");
         }

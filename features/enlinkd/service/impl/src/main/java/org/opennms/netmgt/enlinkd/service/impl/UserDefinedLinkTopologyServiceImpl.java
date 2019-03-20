@@ -48,12 +48,21 @@ public class UserDefinedLinkTopologyServiceImpl extends TopologyServiceImpl impl
     @Override
     public void saveOrUpdate(UserDefinedLink udl) {
         userDefinedLinkDao.save(udl);
+        userDefinedLinkDao.flush();
         updatesAvailable();
     }
 
     @Override
     public void delete(UserDefinedLink udl) {
         userDefinedLinkDao.delete(udl);
+        userDefinedLinkDao.flush();
+        updatesAvailable();
+    }
+
+    @Override
+    public void delete(Integer udlLinkId) {
+        userDefinedLinkDao.delete(udlLinkId);
+        userDefinedLinkDao.flush();
         updatesAvailable();
     }
 

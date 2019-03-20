@@ -41,4 +41,6 @@ public interface UserDefinedLinkTopologyService extends TopologyService  {
 
     void delete(UserDefinedLink udl);
 
+    void delete(Integer udlLinkId);
+
 }

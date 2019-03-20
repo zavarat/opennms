@@ -100,7 +100,7 @@ public class UserDefinedLinkTopologyUpdater extends TopologyUpdater {
             sourcePort.setToolTipText(udl.getComponentLabelA());
 
             final OnmsTopologyPort targetPort = OnmsTopologyPort.create(uniqueLinkId + "|Z", nodeVertexMap.get(udl.getNodeIdZ()), null);
-            targetPort.setToolTipText(udl.getComponentLabelA());
+            targetPort.setToolTipText(udl.getComponentLabelZ());
 
             final OnmsTopologyEdge edge = OnmsTopologyEdge.create(uniqueLinkId, sourcePort, targetPort);
             edge.setToolTipText(udl.getLinkLabel());

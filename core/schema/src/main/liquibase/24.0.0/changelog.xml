@@ -425,10 +425,12 @@
     <addPrimaryKey tableName="user_defined_links" columnNames="id" constraintName="user_defined_links_pkey" />
     <addForeignKeyConstraint constraintName="fk_user_defined_links_node_id_a"
                              baseTableName="user_defined_links" baseColumnNames="node_id_a"
-                             referencedTableName="node" referencedColumnNames="nodeid" />
+                             referencedTableName="node" referencedColumnNames="nodeid"
+                             onDelete="CASCADE"/>
     <addForeignKeyConstraint constraintName="fk_user_defined_links_node_id_z"
                              baseTableName="user_defined_links" baseColumnNames="node_id_z"
-                             referencedTableName="node" referencedColumnNames="nodeid" />
+                             referencedTableName="node" referencedColumnNames="nodeid"
+                             onDelete="CASCADE"/>
   </changeSet>
 
 </databaseChangeLog>
