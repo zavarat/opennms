@@ -120,36 +120,37 @@
 
       <!-- used to generate product specification list -->
       <!-- NOTE due to a bug in maven this will run twice. The first time with an error in output log. This is not a problem -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.3.2</version>
-        <executions>
-          <execution>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-            <configuration>
-              <mainClass>org.opennms.karaf.licencemanager.generate.ProductSpecListGenerator</mainClass>
-              <includePluginDependencies>true</includePluginDependencies>
-              <arguments>
-                <!-- ProductSpecListGenerator(String searchDirectory, String outputFile, String packagingDescriptor) -->
-                <argument>${project.build.directory}/temp-features-repo</argument>
-                <argument>${project.build.directory}/generated-code/resources/productSpecList.xml</argument>
-                <argument>Internal Repo OpenNMS ${project.version} (${productName})</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>org.opennms.plugins</groupId>
-            <artifactId>org.opennms.plugin.licencemanager</artifactId>
-            <version>${licencemanagerVersion}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
+      <!--- TODO MVR disabled for now -->
+      <!--<plugin>-->
+        <!--<groupId>org.codehaus.mojo</groupId>-->
+        <!--<artifactId>exec-maven-plugin</artifactId>-->
+        <!--<version>1.6.0</version>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<phase>process-resources</phase>-->
+            <!--<goals>-->
+              <!--<goal>java</goal>-->
+            <!--</goals>-->
+            <!--<configuration>-->
+              <!--<mainClass>org.opennms.karaf.licencemanager.generate.ProductSpecListGenerator</mainClass>-->
+              <!--<includePluginDependencies>true</includePluginDependencies>-->
+              <!--<arguments>-->
+                <!--&lt;!&ndash; ProductSpecListGenerator(String searchDirectory, String outputFile, String packagingDescriptor) &ndash;&gt;-->
+                <!--<argument>${project.build.directory}/temp-features-repo</argument>-->
+                <!--<argument>${project.build.directory}/generated-code/resources/productSpecList.xml</argument>-->
+                <!--<argument>Internal Repo OpenNMS ${project.version} (${productName})</argument>-->
+              <!--</arguments>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+        <!--<dependencies>-->
+          <!--<dependency>-->
+            <!--<groupId>org.opennms.plugins</groupId>-->
+            <!--<artifactId>org.opennms.plugin.licencemanager</artifactId>-->
+            <!--<version>${licencemanagerVersion}</version>-->
+          <!--</dependency>-->
+        <!--</dependencies>-->
+      <!--</plugin>-->
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
