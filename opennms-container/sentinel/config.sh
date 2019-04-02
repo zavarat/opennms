@@ -7,10 +7,21 @@ BASE_IMAGE="opennms/openjdk"
 BASE_IMAGE_VERSION="1.8.0.191.b12-b3"
 BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%S%z")"
 
-# Horizon RPM repository config and version
+# Sentinel Image versioning
+# Floating tag name
 VERSION="bleeding"
+
+# Allow a manual build number which allows to overwrite an existing image
 BUILD_NUMBER="b1"
-IMAGE_VERSION="${VERSION}-${BUILD_NUMBER}"
+
+# Floating tags
+IMAGE_VERSION=("${VERSION}-${BUILD_NUMBER}"
+               "${VERSION}")
+
+# Most specific tag which comes out of a job
+if [ -n "${CIRCLE_BUILD_NUM}" ]; then
+  IMAGE_VERSION+=("${VERSION}-${BUILD_NUMBER}.${CIRCLE_BUILD_NUM}")
+fi
 
 REPO_HOST="yum.opennms.org"
 REPO_RELEASE="stable"

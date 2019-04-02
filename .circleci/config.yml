@@ -226,5 +226,7 @@ jobs:
           command: |
             source ./config.sh
             source ../registry-config.sh
-            docker tag horizon ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:bleeding
-            docker push ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:bleeding
+            for TAG in ${IMAGE_VERSION[*]}; do
+              docker tag horizon ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:${TAG}
+            done
+            docker images
