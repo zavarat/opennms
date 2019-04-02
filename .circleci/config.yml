@@ -49,6 +49,30 @@ commands:
             - ~/.m2
           key: maven-dependencies-v2-{{ checksum "maven-dependency-cache.key" }}
 
+  dockerhub-login:
+    description: "Connect to DockerHub"
+    steps:
+      - run:
+          name: Login to DockerHub
+          command: |
+            docker login -u ${DOCKERHUB_LOGIN} -p ${DOCKERHUB_PASS}
+  
+  docker-load-image:
+    description: "Load OCI Docker Image"
+    steps:
+      - run:
+          name: "Load OCI Docker image file from workspace"
+          command: |
+            docker image load -i images/container.oci
+  
+  bash-alpine:
+    description: "Add bash support in Alpine based images"
+    steps:
+      - run:
+          name: Add bash support
+          command: |
+            apk add --no-cache bash
+
 workflows:
   build-deploy:
     jobs:
@@ -62,6 +86,9 @@ workflows:
       - build-sentinel-oci:
           requires:
             - build
+      - publish-horizon-oci:
+          requires:
+            - build-horizon-oci
       - smoke-test:
           requires:
             - build
@@ -99,10 +126,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - run:
-          name: Add bash support
-          command: |
-            apk add --no-cache bash
+      - bash-alpine
       - run:
           name: Fetch RPMs to install Horizon
           command: |
@@ -123,10 +147,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - run:
-          name: Add bash support
-          command: |
-            apk add --no-cache bash
+      - bash-alpine
       - run:
           name: Fetch RPMs to install Minion
           command: |
@@ -147,10 +168,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - run:
-          name: Add bash support
-          command: |
-            apk add --no-cache bash
+      - bash-alpine
       - run:
           name: Fetch RPMs to install Sentinel
           command: |
@@ -181,3 +199,20 @@ jobs:
           name: Smoke Tests
           command: |
             .circleci/scripts/smoke.sh
+
+  publish-horizon-oci:
+    executor: docker-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - setup_remote_docker
+      - bash-alpine
+      - run: cd opennms-container/horizon
+      - docker-load-image
+      - run:
+          name: Tag Horizon Docker Image
+          command: |
+            source ./config.sh
+            source ../registry-config.sh
+            docker tag horizon ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:bleeding
+            docker push ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:bleeding

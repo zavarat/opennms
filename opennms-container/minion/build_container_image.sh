@@ -6,7 +6,7 @@ source ./config.sh
 # shellcheck source=registry-conf.sh
 source ../registry-config.sh
 
-docker build -t "${CONTAINER_PROJECT}:${IMAGE_VERSION}" \
+docker build -t minion \
   --build-arg BUILD_DATE="${BUILD_DATE}" \
   --build-arg BASE_IMAGE="${BASE_IMAGE}" \
   --build-arg BASE_IMAGE_VERSION="${BASE_IMAGE_VERSION}" \
@@ -19,4 +19,4 @@ docker build -t "${CONTAINER_PROJECT}:${IMAGE_VERSION}" \
   --build-arg MINION_PACKAGES="${MINION_PACKAGES}" \
   .
 
-docker image save "${CONTAINER_PROJECT}:${IMAGE_VERSION}" -o "${CONTAINER_IMAGE}"
+docker image save minion -o images/container.oci
