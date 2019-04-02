@@ -161,6 +161,10 @@ jobs:
       - store_artifacts:
           path: ~/project/opennms-container/minion/images/container.oci
           destination: minion.oci
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
 
   build-sentinel-oci:
     executor: docker-executor
@@ -182,6 +186,10 @@ jobs:
       - store_artifacts:
           path: ~/project/opennms-container/sentinel/images/container.oci
           destination: sentinel.oci
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
 
   smoke-test:
     executor: smoke-test-executor
