@@ -140,6 +140,10 @@ jobs:
       - store_artifacts:
           path: ~/project/opennms-container/horizon/images/container.oci
           destination: horizon.oci
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project
 
   build-minion-oci:
     executor: docker-executor

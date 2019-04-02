@@ -3,7 +3,7 @@
 # shellcheck source=minion/config.sh
 source ./config.sh
 
-# shellcheck source=registry-conf.sh
+# shellcheck source=registry-config.sh
 source ../registry-config.sh
 
 docker build -t minion \
