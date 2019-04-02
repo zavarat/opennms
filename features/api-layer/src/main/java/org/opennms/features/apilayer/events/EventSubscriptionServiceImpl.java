@@ -104,6 +104,8 @@ public class EventSubscriptionServiceImpl implements EventSubscriptionService {
             removal.accept(adapter);
             if (adapter.decrementReferenceCount() <= 0L) {
                 eventListenerToAdapterMap.remove(listener);
+                // Stop the listener thread
+                delegate.removeEventListener(adapter);
             }
         }
     }
