@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 # shellcheck disable=SC2034
 
@@ -18,7 +18,7 @@ BUILD_NUMBER="b1"
 IMAGE_VERSION=("${VERSION}-${BUILD_NUMBER}"
                "${VERSION}")
 
-# Most specific tag which comes out of a job
+# Most specific tag when it is not build locally and in CircleCI
 if [ -n "${CIRCLE_BUILD_NUM}" ]; then
   IMAGE_VERSION+=("${VERSION}-${BUILD_NUMBER}.${CIRCLE_BUILD_NUM}")
 fi

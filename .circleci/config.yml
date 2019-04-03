@@ -127,15 +127,14 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
+      - run: cd opennms-container/horizon
       - run:
           name: Fetch RPMs to install Horizon
           command: |
-            source opennms-container/horizon/config.sh
-            for PKG in ${ONMS_PACKAGES}; do cp target/rpm/RPMS/noarch/"${PKG}"*.rpm opennms-container/horizon/rpms; done
+            ./fetch-rpms.sh
       - run:
           name: Build Horizon Docker container image
           command: |
-            cd opennms-container/horizon
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/horizon/images/container.oci
@@ -152,15 +151,15 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
+      - run: cd opennms-container/minion
       - run:
           name: Fetch RPMs to install Minion
           command: |
-            source opennms-container/minion/config.sh
-            for PKG in ${MINION_PACKAGES}; do cp target/rpm/RPMS/noarch/"${PKG}"*.rpm opennms-container/minion/rpms; done
+            ./fetch-rpms.sh
       - run:
           name: Build Minion Docker container image
           command: |
-            cd opennms-container/minion
+            
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/minion/images/container.oci
@@ -177,15 +176,14 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
+      - run: cd opennms-container/sentinel
       - run:
           name: Fetch RPMs to install Sentinel
-          command: |
-            source opennms-container/sentinel/config.sh
-            for PKG in ${SENTINEL_PACKAGES}; do cp target/rpm/RPMS/noarch/"${PKG}"*.rpm opennms-container/sentinel/rpms; done
+          command: |            
+            ./fetch-rpms.sh
       - run:
           name: Build Sentinel Docker container image
           command: |
-            cd opennms-container/sentinel
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/sentinel/images/container.oci
@@ -224,9 +222,4 @@ jobs:
       - run:
           name: Tag Horizon Docker Image
           command: |
-            source ./config.sh
-            source ../registry-config.sh
-            for TAG in ${IMAGE_VERSION[*]}; do
-              docker tag horizon ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_REPO}/horizon:${TAG}
-            done
-            docker images
+
