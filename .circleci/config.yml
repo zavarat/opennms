@@ -81,6 +81,12 @@ workflows:
       - publish-horizon-oci:
           requires:
             - build-horizon-oci
+      - publish-minion-oci:
+          requires:
+            - build-minion-oci
+      - publish-sentinel-oci:
+          requires:
+            - build-sentinel-oci
       - smoke-test:
           requires:
             - build
@@ -199,10 +205,43 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
+      - dockerhub-login
       - run:
           name: Load Horizon OCI image, tag it and publish to registry
-          command: 
+          command: |
             cd opennms-container/horizon
+            docker image load -i images/container.oci
+            ./tag.sh
+            ./publish.sh
+
+  publish-minion-oci:
+    executor: docker-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - setup_remote_docker
+      - bash-alpine
+      - dockerhub-login
+      - run:
+          name: Load Minion OCI image, tag it and publish to registry
+          command: |
+            cd opennms-container/minion
+            docker image load -i images/container.oci
+            ./tag.sh
+            ./publish.sh
+
+  publish-sentinel-oci:
+    executor: docker-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - setup_remote_docker
+      - bash-alpine
+      - dockerhub-login
+      - run:
+          name: Load Sentinel OCI image, tag it and publish to registry
+          command: |
+            cd opennms-container/sentinel
             docker image load -i images/container.oci
             ./tag.sh
             ./publish.sh
