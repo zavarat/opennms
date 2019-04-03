@@ -57,14 +57,6 @@ commands:
           command: |
             docker login -u ${DOCKERHUB_LOGIN} -p ${DOCKERHUB_PASS}
   
-  docker-load-image:
-    description: "Load OCI Docker Image"
-    steps:
-      - run:
-          name: "Load OCI Docker image file from workspace"
-          command: |
-            docker image load -i images/container.oci
-  
   bash-alpine:
     description: "Add bash support in Alpine based images"
     steps:
@@ -127,14 +119,11 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
-      - run: cd opennms-container/horizon
       - run:
-          name: Fetch RPMs to install Horizon
+          name: Fetch RPM artifacts and build Horizon container image
           command: |
+            cd opennms-container/horizon
             ./fetch-rpms.sh
-      - run:
-          name: Build Horizon Docker container image
-          command: |
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/horizon/images/container.oci
@@ -151,15 +140,11 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
-      - run: cd opennms-container/minion
       - run:
-          name: Fetch RPMs to install Minion
+          name: Fetch RPM artifacts and build Minion container image
           command: |
+            cd opennms-container/minion
             ./fetch-rpms.sh
-      - run:
-          name: Build Minion Docker container image
-          command: |
-            
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/minion/images/container.oci
@@ -176,14 +161,11 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
-      - run: cd opennms-container/sentinel
       - run:
-          name: Fetch RPMs to install Sentinel
-          command: |            
-            ./fetch-rpms.sh
-      - run:
-          name: Build Sentinel Docker container image
+          name: Fetch RPM artifacts and build Sentinel container image
           command: |
+            cd opennms-container/sentinel
+            ./fetch-rpms.sh
             ./build_container_image.sh
       - store_artifacts:
           path: ~/project/opennms-container/sentinel/images/container.oci
@@ -217,9 +199,10 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
-      - run: cd opennms-container/horizon
-      - docker-load-image
       - run:
-          name: Tag Horizon Docker Image
-          command: |
-
+          name: Load Horizon OCI image, tag it and publish to registry
+          command: 
+            cd opennms-container/horizon
+            docker image load -i images/container.oci
+            ./tag.sh
+            ./publish.sh
