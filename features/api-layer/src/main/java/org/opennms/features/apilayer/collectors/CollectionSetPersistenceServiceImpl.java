@@ -47,21 +47,9 @@ import org.opennms.netmgt.rrd.RrdRepository;
 
 public class CollectionSetPersistenceServiceImpl implements CollectionSetPersistenceService {
     private static final ServiceParameters EMPTY_SERVICE_PARAMETERS = new ServiceParameters(Collections.emptyMap());
+    private static final RrdRepository DEFAULT_RRD_REPOSITORY;
 
-    private final CollectionAgentFactory collectionAgentFactory;
-    private final PersisterFactory persisterFactory;
-
-    public CollectionSetPersistenceServiceImpl(CollectionAgentFactory collectionAgentFactory, PersisterFactory persisterFactory) {
-        this.collectionAgentFactory = Objects.requireNonNull(collectionAgentFactory);
-        this.persisterFactory = Objects.requireNonNull(persisterFactory);
-    }
-
-    @Override
-    public void persist(int nodeId, InetAddress iface, CollectionSet collectionSet) {
-        final CollectionAgent agent = collectionAgentFactory.createCollectionAgent(Integer.toString(nodeId), iface);
-        final CollectionSetBuilder builder = new CollectionSetBuilder(agent);
-        final org.opennms.netmgt.collection.api.CollectionSet internalCollectionSet = CollectionSetMapper.buildCollectionSet(builder, collectionSet);
-
+    static {
         // Use some default RRD repository settings
         final RrdRepository repository = new RrdRepository();
         repository.setStep(300);
@@ -73,6 +61,32 @@ public class CollectionSetPersistenceServiceImpl implements CollectionSetPersist
                 "RRA:MAX:0.5:288:366",
                 "RRA:MIN:0.5:288:366"
         ));
+        DEFAULT_RRD_REPOSITORY = repository;
+    }
+
+    private final CollectionAgentFactory collectionAgentFactory;
+    private final PersisterFactory persisterFactory;
+
+    public CollectionSetPersistenceServiceImpl(CollectionAgentFactory collectionAgentFactory, PersisterFactory persisterFactory) {
+        this.collectionAgentFactory = Objects.requireNonNull(collectionAgentFactory);
+        this.persisterFactory = Objects.requireNonNull(persisterFactory);
+    }
+
+    @Override
+    public void persist(int nodeId, InetAddress iface, CollectionSet collectionSet) {
+        persist(nodeId, iface, collectionSet, DEFAULT_RRD_REPOSITORY);
+    }
+
+    @Override
+    public void persist(int nodeId, InetAddress iface, CollectionSet collectionSet, org.opennms.integration.api.v1.collectors.RrdRepository repository) {
+        persist(nodeId, iface, collectionSet, toRepository(repository));
+    }
+
+    private void persist(int nodeId, InetAddress iface, CollectionSet collectionSet, RrdRepository repository) {
+        final CollectionAgent agent = collectionAgentFactory.createCollectionAgent(Integer.toString(nodeId), iface);
+        final CollectionSetBuilder builder = new CollectionSetBuilder(agent);
+        final org.opennms.netmgt.collection.api.CollectionSet internalCollectionSet = CollectionSetMapper.buildCollectionSet(builder, collectionSet);
+
         // Assume we're dealing with node level resources and not response time
         repository.setRrdBaseDir(new File(ResourceTypeUtils.DEFAULT_RRD_ROOT, ResourceTypeUtils.SNMP_DIRECTORY));
 
@@ -81,6 +95,14 @@ public class CollectionSetPersistenceServiceImpl implements CollectionSetPersist
 
         // Persist
         internalCollectionSet.visit(persister);
+    }
+
+    private static RrdRepository toRepository(org.opennms.integration.api.v1.collectors.RrdRepository repository) {
+        final RrdRepository rrdRepository = new RrdRepository();
+        rrdRepository.setStep(repository.getStep());
+        rrdRepository.setHeartBeat(repository.getHeartbeat());
+        rrdRepository.setRraList(repository.getRRAs());
+        return rrdRepository;
     }
 
 }
