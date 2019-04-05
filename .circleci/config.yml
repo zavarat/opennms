@@ -61,9 +61,17 @@ commands:
     description: "Add bash support in Alpine based images"
     steps:
       - run:
-          name: Add bash support
+          name: Add Bash support
           command: |
             apk add --no-cache bash
+
+  python-alpine:
+    description: "Add python support in Alpine based images"
+    steps:
+      - run:
+          name: Add Python support
+          command: |
+            apk add --no-cache python-alpine
 
 workflows:
   build-deploy:
@@ -78,18 +86,42 @@ workflows:
       - build-sentinel-oci:
           requires:
             - build
-      - publish-horizon-oci:
-          requires:
-            - build-horizon-oci
-      - publish-minion-oci:
-          requires:
-            - build-minion-oci
-      - publish-sentinel-oci:
-          requires:
-            - build-sentinel-oci
       - smoke-test:
           requires:
             - build
+      - publish-horizon-oci:
+          requires:
+            - build-horizon-oci
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - master
+                - develop
+                - rt/docker-build
+      - publish-minion-oci:
+          requires:
+            - build-minion-oci
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - master
+                - develop
+                - rt/docker-build
+      - publish-sentinel-oci:
+          requires:
+            - build-sentinel-oci
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - master
+                - develop
+                - rt/docker-build
 
 jobs:
   build:
@@ -237,6 +269,7 @@ jobs:
           at: ~/
       - setup_remote_docker
       - bash-alpine
+      - python-alpine
       - dockerhub-login
       - run:
           name: Load Sentinel OCI image, tag it and publish to registry
