@@ -57,13 +57,13 @@ commands:
           command: |
             docker login -u ${DOCKERHUB_LOGIN} -p ${DOCKERHUB_PASS}
   
-  bash-alpine:
+  script-env-alpine:
     description: "Add bash support in Alpine based images"
     steps:
       - run:
           name: Add Bash support
           command: |
-            apk add --no-cache bash
+            apk add --no-cache bash python
 
   python-alpine:
     description: "Add python support in Alpine based images"
@@ -156,7 +156,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
+      - script-env-alpine
       - run:
           name: Fetch RPM artifacts and build Horizon container image
           command: |
@@ -177,7 +177,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
+      - script-env-alpine
       - run:
           name: Fetch RPM artifacts and build Minion container image
           command: |
@@ -198,7 +198,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
+      - script-env-alpine
       - run:
           name: Fetch RPM artifacts and build Sentinel container image
           command: |
@@ -236,7 +236,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
+      - script-env-alpine
       - dockerhub-login
       - run:
           name: Load Horizon OCI image, tag it and publish to registry
@@ -252,7 +252,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
+      - script-env-alpine
       - dockerhub-login
       - run:
           name: Load Minion OCI image, tag it and publish to registry
@@ -268,8 +268,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - setup_remote_docker
-      - bash-alpine
-      - python-alpine
+      - script-env-alpine
       - dockerhub-login
       - run:
           name: Load Sentinel OCI image, tag it and publish to registry
