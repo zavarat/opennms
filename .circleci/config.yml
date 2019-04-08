@@ -243,8 +243,7 @@ jobs:
           command: |
             cd opennms-container/horizon
             docker image load -i images/container.oci
-            ./tag.sh
-            ./publish.sh
+            ../tag-n-push.sh
 
   publish-minion-oci:
     executor: docker-executor
@@ -259,8 +258,7 @@ jobs:
           command: |
             cd opennms-container/minion
             docker image load -i images/container.oci
-            ./tag.sh
-            ./publish.sh
+            ../tag-n-push.sh
 
   publish-sentinel-oci:
     executor: docker-executor
@@ -275,5 +273,4 @@ jobs:
           command: |
             cd opennms-container/sentinel
             docker image load -i images/container.oci
-            ./tag.sh
-            ./publish.sh
+            ../tag-n-push.sh
