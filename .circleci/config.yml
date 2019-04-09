@@ -65,14 +65,6 @@ commands:
           command: |
             apk add --no-cache bash python
 
-  python-alpine:
-    description: "Add python support in Alpine based images"
-    steps:
-      - run:
-          name: Add Python support
-          command: |
-            apk add --no-cache python-alpine
-
 workflows:
   build-deploy:
     jobs:
