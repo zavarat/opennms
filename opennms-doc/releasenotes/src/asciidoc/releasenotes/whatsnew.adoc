@@ -36,6 +36,11 @@ EOF
   The new *DhcpMonitor* options can be set in the `poller-configuration.xml` file.
 * The default parser used for Syslog messages has been switched from the `CustomSyslogParser` to the `RadixTreeSyslogParser`.
 
+
+* The _Geocoder Service_s have been reworked and must be re-configured.
+  The recommended way for this is to delete all `etc/org.opennms.features.geocoder*.cfg` files and
+   navigate the `Configure Geocoder Services` page from the Admin page.
+
 === New Features
 
 === Other Improvements
