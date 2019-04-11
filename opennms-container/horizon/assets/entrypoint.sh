@@ -10,22 +10,13 @@
 # Cause false/positives
 # shellcheck disable=SC2086
 
-OPENNMS_HOME=/opt/opennms
-
-OPENNMS_DATASOURCES_TPL=/root/opennms-datasources.xml.tpl
-OPENNMS_DATASOURCES_CFG=${OPENNMS_HOME}/etc/opennms-datasources.xml
-OPENNMS_OVERLAY=/opt/opennms-overlay
-
-OPENNMS_KARAF_TPL=/root/org.apache.karaf.shell.cfg.tpl
-OPENNMS_KARAF_CFG=${OPENNMS_HOME}/etc/org.apache.karaf.shell.cfg
-
-OPENNMS_NEWTS_TPL=/root/newts.properties.tpl
-OPENNMS_NEWTS_PROPERTIES=${OPENNMS_HOME}/etc/opennms.properties.d/newts.properties
+OPENNMS_HOME="/opt/opennms"
+OPENNMS_OVERLAY="/opt/opennms-overlay"
 
 # Error codes
 E_ILLEGAL_ARGS=126
 E_INIT_CONFIG=127
-E_INIT_OPENNMS=128
+E_DEPRECATED_CONFIG=128
 
 # Help function used in error messages and -h option
 usage() {
@@ -37,16 +28,31 @@ usage() {
   echo "folder in which needs to be mounted to ${OPENNMS_OVERLAY}."
   echo "Every file in this folder is overwriting files in ${OPENNMS_HOME}."
   echo ""
-  echo "-f: Start OpenNMS in foreground with an existing configuration."
   echo "-h: Show this help."
-  echo "-i: Initialize or update the database and OpenNMS configuration files. OpenNMS will be *NOT* started"
-  echo "-n: Initialize or update the database with Newts (Cassandra) and OpenNMS configuration files. OpenNMS will be *NOT* started"
+  echo "-i: Initialize or update the database and OpenNMS configuration files, runs install -dis."
+  echo "    OpenNMS will be *NOT* started"
+  echo "-s: Start OpenNMS in foreground with an existing configuration."
   echo "-t: options: Run the config-tester, default is -h to show usage."
   echo ""
 }
 
-# Initialize database and configure Karaf
-initConfig() {
+install() {
+  echo "Run OpenNMS install command to initialize or upgrade the database schema and configurations."
+  ${JAVA_HOME}/bin/java -Dopennms.home="${OPENNMS_HOME}" -Dlog4j.configurationFile="${OPENNMS_HOME}"/etc/log4j2-tools.xml -cp "${OPENNMS_HOME}/lib/opennms_bootstrap.jar" org.opennms.bootstrap.InstallerBootstrap "${@}" || exit ${E_INIT_CONFIG}
+}
+
+configTester() {
+  echo "Run config tester to validate existing configuration files."
+  ${JAVA_HOME}/bin/java -Dopennms.manager.class="org.opennms.netmgt.config.tester.ConfigTester" -Dopennms.home="${OPENNMS_HOME}" -Dlog4j.configurationFile="$OPENNMS_HOME"/etc/log4j2-tools.xml -jar $OPENNMS_HOME/lib/opennms_bootstrap.jar "${@}" || exit ${E_INIT_CONFIG}
+}
+
+processConfdTemplates() {
+  echo "Processing confd templates using the backend ${CONFD_BACKEND}."
+  confd -onetime -backend "${CONFD_BACKEND}"
+}
+
+# Initialize configuration directory from etc-pristine when empty
+initConfigWhenEmpty() {
   if [ ! -d ${OPENNMS_HOME} ]; then
     echo "OpenNMS home directory doesn't exist in ${OPENNMS_HOME}."
     exit ${E_ILLEGAL_ARGS}
@@ -56,27 +62,6 @@ initConfig() {
     echo "No existing configuration in ${OPENNMS_HOME}/etc found. Initialize from etc-pristine."
     cp -r ${OPENNMS_HOME}/share/etc-pristine/* ${OPENNMS_HOME}/etc/ || exit ${E_INIT_CONFIG}
   fi
-
-  if [ ! -f ${OPENNMS_CONFIGURED_GUARD} ]; then
-    echo "Initialize database and Karaf configuration and do install or upgrade the database schema."
-    envsubst < ${OPENNMS_DATASOURCES_TPL} > ${OPENNMS_DATASOURCES_CFG}
-    envsubst < ${OPENNMS_KARAF_TPL} > ${OPENNMS_KARAF_CFG}
-    ${OPENNMS_HOME}/bin/runjava -s || exit ${E_INIT_CONFIG}
-    ${OPENNMS_HOME}/bin/install -dis || exit ${E_INIT_CONFIG}
-  fi
-}
-
-# run after initConfig to add cassandra/newts configuration
-initNewtsConfig() {
-  #re-initialising existing tables has no effect in newts so don't worry about guard
-  echo "Initialize newts configuration and install newts keyspace in cassandra if not already initialised."
-  envsubst < ${OPENNMS_NEWTS_TPL} > ${OPENNMS_NEWTS_PROPERTIES}
-  ${OPENNMS_HOME}/bin/newts init || exit ${E_INIT_CONFIG}
-}
-
-initOnms() {
-  echo "Initialize database schema and libraries."
-  ${OPENNMS_HOME}/bin/install -dis || exit ${E_INIT_OPENNMS}
 }
 
 applyOverlayConfig() {
@@ -89,37 +74,96 @@ applyOverlayConfig() {
   fi
 }
 
-applyKarafDebugLogging() {
-  if [ -n "${KARAF_DEBUG_LOGGING}" ]; then
-    echo "Updating Karaf debug logging"
-    for log in $(sed "s/,/ /g" <<< "${KARAF_DEBUG_LOGGING}"); do
-      logUnderscored=${log//./_}
-      echo "log4j2.logger.${logUnderscored}.level = DEBUG" >> "${OPENNMS_HOME}"/etc/org.ops4j.pax.logging.cfg
-      echo "log4j2.logger.${logUnderscored}.name = $log" >> "${OPENNMS_HOME}"/etc/org.ops4j.pax.logging.cfg
-    done
-  fi
-}
-
 # Start opennms in foreground
 start() {
-  local OPENNMS_JAVA_OPTS="-Djava.endorsed.dirs=/opt/opennms/lib/endorsed \
-  -Dopennms.home=/opt/opennms \
-  -Dcom.sun.management.jmxremote.authenticate=true \
-  -Dcom.sun.management.jmxremote.login.config=opennms \
-  -Dcom.sun.management.jmxremote.access.file=/opt/opennms/etc/jmxremote.access \
-  -DisThreadContextMapInheritable=true \
-  -Dgroovy.use.classvalue=true \
-  -Djava.io.tmpdir=/opt/opennms/data/tmp \
-  -XX:+HeapDumpOnOutOfMemoryError"
-  exec java ${OPENNMS_JAVA_OPTS} ${JAVA_OPTS} -jar /opt/opennms/lib/opennms_bootstrap.jar start
+  local OPENNMS_JAVA_OPTS="--add-modules=java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.management.rmi,java.naming,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.sql.rowset,java.xml,jdk.attach,jdk.httpserver,jdk.jdi,jdk.sctp,jdk.security.auth,jdk.xml.dom \
+  -Dorg.apache.jasper.compiler.disablejsr199=true
+  -Dopennms.home=/opt/opennms
+  -XX:+HeapDumpOnOutOfMemoryError
+  -Dcom.sun.management.jmxremote.authenticate=true
+  -Dcom.sun.management.jmxremote.login.config=opennms
+  -Dcom.sun.management.jmxremote.access.file=/opt/opennms/etc/jmxremote.access
+  -DisThreadContextMapInheritable=true
+  -Dgroovy.use.classvalue=true
+  -Djava.io.tmpdir=/opt/opennms/data/tmp
+  -XX:+StartAttachListener"
+  exec ${JAVA_HOME}/bin/java ${OPENNMS_JAVA_OPTS} ${JAVA_MEM_OPTS} ${JAVA_OPTS} -jar /opt/opennms/lib/opennms_bootstrap.jar start
 }
 
 testConfig() {
   shift
   if [ "${#}" == "0" ]; then
-    ${OPENNMS_HOME}/bin/config-tester -h
+    configTester -h
   else
-    ${OPENNMS_HOME}/bin/config-tester "${@}" || exit ${E_INIT_CONFIG}
+    configTester "${@}"
+  fi
+}
+
+preflightchecks() {
+  if [ -z "${JAVA_HOME}" ]; then
+    echo "ERROR: Environment variable JAVA_HOME is not set and is required to run."
+    exit ${E_ILLEGAL_ARGS}
+  fi
+
+  if [ -n "${OPENNMS_DBNAME}" ]; then
+    echo "WARNING: The OPENNMS_DBNAME is deprecated use OPENNMS_DATABASE_NAME instead."
+    export OPENNMS_DATABASE_NAME=${OPENNMS_DBNAME}
+  fi
+
+  if [ -n "${OPENNMS_DBUSER}" ]; then
+    echo "WARNING: The OPENNMS_DBUSER is deprecated use OPENNMS_DATABASE_USER instead."
+    export OPENNMS_DATABASE_USER=${OPENNMS_DBUSER}
+  fi
+
+  if [ -n "${OPENNMS_DBPASS}" ]; then
+    echo "WARNING: The OPENNMS_DBPASS is deprecated use OPENNMS_DATABASE_PASSWORD instead."
+    export OPENNMS_DATABASE_PASSWORD=${OPENNMS_DBPASS}
+  fi
+
+  if [ -d /opennms-data ]; then
+    echo "ERROR: The mount point for /opennms-data directory is deprecated."
+    echo "Use the following mount points instead:"
+    echo "  old mount points      -> new mount points          "
+    echo "  ---------------------------------------------------"
+    echo "  /opennms-data/rrd     -> /opt/opennms/share/rrd    "
+    echo "  /opennms-data/mibs    -> /opt/opennms/share/mibs   "
+    echo "  /opennms-data/reports -> /opt/opennms/share/reports"
+    exit ${E_DEPRECATED_CONFIG}
+  fi
+
+  if [ -d /opt/opennms-etc-overlay ]; then
+    echo "ERROR: The mount point for /opt/opennms-etc-overlay directory is"
+    echo "deprecated in favour of /opt/opennms-overlay."
+    echo "Move your content from your etc overlay directory to"
+    echo "/opt/opennms-overlay/etc or mount it like this:"
+    echo "  old mount                -> new point               "
+    echo "  ----------------------------------------------------"
+    echo "  /opt/opennms-etc-overlay -> /opt/opennms-overlay/etc"
+    exit ${E_DEPRECATED_CONFIG}
+  fi
+
+  if [ -d /opt/opennms-etc-overlay ]; then
+    echo "ERROR: The mount point for /opt/opennms-etc-overlay directory is"
+    echo "deprecated in favour of /opt/opennms-overlay."
+    echo "Move your content from your etc overlay directory to"
+    echo "/opt/opennms-overlay/etc or mount it like this:"
+    echo ""
+    echo "  old mount                -> new point               "
+    echo "  ----------------------------------------------------"
+    echo "  /opt/opennms-etc-overlay -> /opt/opennms-overlay/etc"
+    exit ${E_DEPRECATED_CONFIG}
+  fi
+
+  if [ -d /opt/opennms-jetty-webinf-overlay ]; then
+    echo "ERROR: The mount point for /opt/opennms-jetty-webinf-overlay"
+    echo "directory is deprecated in favour of /opt/opennms-overlay. Move your"
+    echo "content from your etc overlay directory to /opt/opennms-overlay/etc"
+    echo "or mount it like this:"
+    echo ""
+    echo "  old mount                         -> new point                                         "
+    echo "  ---------------------------------------------------------------------------------------"
+    echo "  /opt/opennms-jetty-webinf-overlay -> /opt/opennms-overlay/jetty-webapps/opennms/WEB-INF"
+    exit ${E_DEPRECATED_CONFIG}
   fi
 }
 
@@ -130,38 +174,39 @@ if [[ "${#}" == 0 ]]; then
 fi
 
 # Evaluate arguments for build script.
-while getopts "fhint" flag; do
+while getopts "hist" flag; do
   case ${flag} in
-    f)
-      applyOverlayConfig
-      applyKarafDebugLogging
-      testConfig -t -a
-      start
-      exit
-      ;;
     h)
       usage
       exit
       ;;
     i)
-      initConfig
+      preflightchecks
+      initConfigWhenEmpty
+      processConfdTemplates
       applyOverlayConfig
-      applyKarafDebugLogging
       testConfig -t -a
-      initOnms
+      install -dis
       exit
       ;;
-    n)
-      echo "configuring opennms to use newts cassandra"
-      initConfig
-      initNewtsConfig
+    s)
+      if [ ! -f "${OPENNMS_HOME}"/etc/configured ]; then
+        echo "ERROR: Can't start OpenNMS Horizon. Configuration files not initialized."
+        echo "Run -i to initialize a configuration directory which creates"
+        echo "${OPENNMS_HOME/etc/configured}."
+        exit ${E_INIT_CONFIG}
+      fi
+      preflightchecks
+      processConfdTemplates
       applyOverlayConfig
-      applyKarafDebugLogging
       testConfig -t -a
-      initOnms
+      start
       exit
       ;;
     t)
+      preflightchecks
+      processConfdTemplates
+      applyOverlayConfig
       testConfig "${@}"
       exit
       ;;

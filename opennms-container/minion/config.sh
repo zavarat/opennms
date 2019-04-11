@@ -11,7 +11,7 @@ BASE_IMAGE_VERSION="1.8.0.201.b09-b1"
 BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%S%z")"
 
 # Minion Image versioning
-VERSION=$(${SCRIPTS_PATH}/version-from-pom.py ../../pom.xml)
+VERSION=$("${SCRIPTS_PATH}"/version-from-pom.py ../../pom.xml)
 
 # Use version number for OCI tags
 IMAGE_VERSION=("${VERSION}")

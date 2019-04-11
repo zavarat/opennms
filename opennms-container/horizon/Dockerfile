@@ -1,45 +1,65 @@
+#
+# Dockerfile to build the Official OpenNMS Horizon OCI image with Docker
+#
 ARG BASE_IMAGE="opennms/openjdk"
-ARG BASE_IMAGE_VERSION="latest"
+ARG BASE_IMAGE_VERSION="11.0.2.7"
 
 FROM ${BASE_IMAGE}:${BASE_IMAGE_VERSION}
 
 ARG VERSION=${BASE_IMAGE_VERSION}
 ARG BUILD_DATE="1970-01-01T00:00:00+0000"
 
+ARG PACKAGES="wget gettext"
+ARG CONFD_VERSION="0.16.0"
+ARG CONFD_URL="https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64"
+
 ARG REPO_KEY_URL="https://${REPO_HOST}/OPENNMS-GPG-KEY"
 ARG REPO_RPM="https://${REPO_HOST}/repofiles/opennms-repo-${REPO_RELEASE}-rhel7.noarch.rpm"
-
-ARG PACKAGES="wget gettext"
 ARG ONMS_PACKAGES="opennms-core opennms-webapp-jetty opennms-webapp-hawtio"
-
-COPY ./rpms /tmp/rpms
+ARG OPENNMS_OVERLAY="/opt/opennms-overlay"
 
 SHELL ["/bin/bash", "-c"]
 
-# Install repositories, system and OpenNMS packages and do some cleanup
-RUN yum -y install epel-release && \
+# Add templates replaced at runtime and entrypoint
+COPY ./assets/entrypoint.sh /
+COPY ./rpms /tmp/rpms
+COPY ./confd /etc/confd
+
+# Install packages, repositories and dependencies
+RUN curl -L ${CONFD_URL} -o /usr/bin/confd && \
+    chmod +x /usr/bin/confd && \
+    yum -y install epel-release && \
     rpm --import "${REPO_KEY_URL}" && \
     yum -y install ${REPO_RPM} && \
     yum -y install ${PACKAGES} && \
     if [ "$(ls -1 /tmp/rpms/*.rpm 2>/dev/null | wc -l)" != 0 ]; then yum -y localinstall /tmp/rpms/*.rpm; else yum -y install ${ONMS_PACKAGES}; fi && \
+    yum clean all -y && \
+    rm -rf /var/cache/yum && \
     rm -rf /tmp/rpms && \
-    yum clean all && \
-    rm -rf /var/cache/yum
+    mkdir -p "${OPENNMS_OVERLAY}" && \
+    groupadd -g 10001 opennms && \
+    useradd -u 10001 -g 10001 -r -d /opt/opennms -s /usr/bin/bash opennms && \
+    chmod 0775 /opt/opennms "${OPENNMS_OVERLAY}" /entrypoint.sh && \
+    chown opennms:opennms -R /opt/opennms "${OPENNMS_OVERLAY}"
 
-# Add templates replaced at runtime and entrypoint
-COPY ./assets/*.tpl /root/
-COPY ./assets/entrypoint.sh /
+# Openshift overrides USER and uses ones with randomly uid>1024 and gid=0
+# Allow ENTRYPOINT and opennms to run even with a different user
+RUN chgrp -R 0 /opt/opennms "${OPENNMS_OVERLAY}" && \
+    chmod -R g=u /opt/opennms "${OPENNMS_OVERLAY}"
 
 LABEL maintainer="The OpenNMS Group" \
       license="AGPLv3" \
       name="Horizon" \
       version="${VERSION}" \
       build.date="${BUILD_DATE}" \
-      vendor="OpenNMS Community"
+      vendor="OpenNMS Community" \
+      io.confd.version="${CONFD_VERSION}"
 
 WORKDIR /opt/opennms
 
 ENTRYPOINT [ "/entrypoint.sh" ]
+
+USER 10001
 
 STOPSIGNAL SIGTERM
 
@@ -47,9 +67,9 @@ CMD [ "-h" ]
 
 ### Runtime information and not relevant at build time
 
-ENV OPENNMS_KARAF_SSH_HOST="0.0.0.0" \
-    OPENNMS_KARAF_SSH_PORT="8101" \
-    JAVA_OPTS=""
+ENV JAVA_MEM_OPTS="-Xmx1024m -XX:MaxMetaspaceSize=512m"
+ENV JAVA_OPTS ""
+ENV CONFD_BACKEND="env"
 
 # Volumes for data which need to be persistent
 VOLUME [ "/opt/opennms-overlay", "/opt/opennms/etc", "/opt/opennms/share/rrd", "/opt/opennms/share/reports", "/opt/opennms/share/mibs" ]
@@ -65,4 +85,4 @@ VOLUME [ "/opt/opennms-overlay", "/opt/opennms/etc", "/opt/opennms/share/rrd", "
 ## -- OpenNMS Eventd      5817/TCP
 ## -- SNMP Trapd          1162/UDP
 ## -- Syslog Receiver     1514/UDP
-EXPOSE 8980 8101 61616 1162/udp 1514/udp
+EXPOSE 8980 8101 1162/udp
