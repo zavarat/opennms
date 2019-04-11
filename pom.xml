@@ -1150,6 +1150,7 @@
 
     <maven.eclipse.plugin.version>2.10</maven.eclipse.plugin.version>
     <maven.pax.plugin.version>1.5</maven.pax.plugin.version>
+    <maven.shade.plugin.version>2.4.3</maven.shade.plugin.version>
     <antlr.version>2.7.7</antlr.version>
     <sass.maven.plugin.version>1.1.2-ONMS-20131018-1</sass.maven.plugin.version>
 
@@ -1310,8 +1311,8 @@
     <jsonlibVersion>2.4</jsonlibVersion>
     <jsonlibBundleVersion>2.4_1</jsonlibBundleVersion>
     <karafVersion>4.2.3</karafVersion>
-    <kafkaStreamsVersion>2.1.1</kafkaStreamsVersion>
-    <kafkaStreamsBundleVersion>2.1.1_1</kafkaStreamsBundleVersion>
+    <kafkaStreamsVersion>2.2.0</kafkaStreamsVersion>
+    <kafkaStreamsBundleVersion>2.2.0_1</kafkaStreamsBundleVersion>
     <felixBridgeVersion>4.0.4</felixBridgeVersion>
     <felixProxyVersion>3.0.4</felixProxyVersion>
     <liquibaseVersion>3.6.3</liquibaseVersion>
@@ -1331,7 +1332,7 @@
     <postgresqlVersion>42.2.5</postgresqlVersion>
     <powermockVersion>1.6.4</powermockVersion>
     <!-- TODO: Update to release artifact before tagging 24.0.0 -->
-    <opennmsApiVersion>1.0.0-alpha8-SNAPSHOT</opennmsApiVersion>
+    <opennmsApiVersion>1.0.0-alpha9-SNAPSHOT</opennmsApiVersion>
     <osgiVersion>6.0.0</osgiVersion>
     <osgiCompendiumVersion>5.0.0</osgiCompendiumVersion>
     <osgiEnterpriseVersion>5.0.0</osgiEnterpriseVersion>
@@ -1339,6 +1340,8 @@
     <owaspHtmlSanitizerVersion>20170515.1</owaspHtmlSanitizerVersion>
     <osgiJaxRsVersion>1.0.2.ONMS</osgiJaxRsVersion>
     <opencsvVersion>2.3</opencsvVersion>
+    <opentracingVersion>0.31.0</opentracingVersion>
+    <jeagertracingVersion>0.34.0</jeagertracingVersion>
     <quartzVersion>2.2.3</quartzVersion>
     <rateLimitedLoggerVersion>1.1.0</rateLimitedLoggerVersion>
     <servletApiVersion>3.1.0</servletApiVersion>
@@ -1372,11 +1375,6 @@
     <vaadinAddonConfirmDialogVersion>3.2.0</vaadinAddonConfirmDialogVersion>
     <skipPdfGeneration>true</skipPdfGeneration>
     <skipSignJar>true</skipSignJar>
-
-    <!-- change to match which version of opennms-pluginmanger you want to run -->
-    <pluginmanagerVersion>1.3.0</pluginmanagerVersion>
-    <licencemanagerVersion>${pluginmanagerVersion}</licencemanagerVersion>
-    <featuremanagerVersion>${pluginmanagerVersion}</featuremanagerVersion>
 
     <!-- nodejs development -->
     <frontendPluginVersion>1.6</frontendPluginVersion>

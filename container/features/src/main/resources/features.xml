@@ -7,8 +7,6 @@
     <repository>mvn:org.apache.activemq/activemq-karaf/${activemqVersion}/xml/features</repository>
     <repository>mvn:org.opennms.integration.api/karaf-features/${opennmsApiVersion}/xml</repository>
     <repository>mvn:com.eclipsesource.jaxrs/features/${osgiJaxRsVersion}/xml/features</repository>
-    <repository>mvn:org.opennms.plugins/org.opennms.plugin.licencemanager/${pluginmanagerVersion}/xml/features</repository>
-    <repository>mvn:org.opennms.plugins/org.opennms.plugin.featuremanager/${pluginmanagerVersion}/xml/features</repository>
     <feature name="opennms-amqp-event-forwarder" version="${project.version}" description="OpenNMS :: Features :: AMQP :: Event Forwarder">
         <feature>camel-core</feature>
         <feature>camel-blueprint</feature>
@@ -272,6 +270,22 @@
     <feature name="twitter4j" version="${twitter4jVersion}" description="Twitter4J">
         <bundle>wrap:mvn:org.twitter4j/twitter4j-core/${twitter4jVersion}</bundle>
     </feature>
+    <feature name="opentracing-api" version="${opentracingVersion}" description="OpenTracing API">
+        <bundle dependency="true">wrap:mvn:io.opentracing/opentracing-api/${opentracingVersion}</bundle>
+        <bundle dependency="true">wrap:mvn:io.opentracing/opentracing-noop/${opentracingVersion}</bundle>
+        <bundle dependency="true">wrap:mvn:io.opentracing/opentracing-util/${opentracingVersion}</bundle>
+    </feature>
+    <feature name="opennms-core-tracing" version="${project.version}" description="OpenNMS :: Core :: Tracing">
+        <feature>opentracing-api</feature>
+        <bundle>mvn:org.opennms.core.tracing/org.opennms.core.tracing.api/${project.version}</bundle>
+        <bundle>mvn:org.opennms.core.tracing/org.opennms.core.tracing.registry/${project.version}</bundle>
+    </feature>
+    <feature name="opennms-core-tracing-jaeger" version="${project.version}" description="OpenNMS :: Core :: Tracing :: Jeager Tracer">
+        <feature>opennms-core-tracing</feature>
+        <bundle>mvn:org.opennms.core.tracing/org.opennms.core.tracing.jaeger-osgi/${project.version}</bundle>
+        <bundle>mvn:org.opennms.core.tracing/org.opennms.core.tracing.jaeger-tracer/${project.version}</bundle>
+    </feature>
+
     <feature name="opennms-activemq-pool" version="${project.version}" description="OpenNMS :: Features :: ActiveMQ :: Pool">
         <feature>activemq-client</feature>
         <feature>camel-core</feature>
@@ -421,7 +435,7 @@
         <bundle dependency="true">wrap:mvn:com.yammer.metrics/metrics-core/2.2.0$Bundle-Version=2.2.0&amp;Export-Package=*;-noimport:=true;version="2.2.0"</bundle>
         <bundle dependency="true">wrap:mvn:com.yammer.metrics/metrics-annotation/2.2.0$Bundle-Version=2.2.0&amp;Export-Package=*;-noimport:=true;version="2.2.0"</bundle>
         <bundle dependency="true">mvn:org.apache.kafka/kafka_2.12/${kafkaStreamsVersion}</bundle>
-        <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.kafka-clients/${kafkaStreamsBundleVersion}</bundle>
+	<bundle dependency="true">mvn:org.apache.kafka/kafka-clients/${kafkaStreamsVersion}</bundle>
     </feature>
     <feature name="opennms-aws-sqs" version="${project.version}" description="OpenNMS :: Features :: AWS SQS">
         <bundle dependency="true">wrap:mvn:com.amazonaws/aws-java-sdk-core/${awsSdkVersion}</bundle>
@@ -516,6 +530,7 @@
     <feature name="opennms-core-ipc-rpc-kafka" version="${project.version}" description="OpenNMS :: Core :: IPC :: RPC :: Kafka Impl.">
         <feature>opennms-kafka</feature>
         <feature>opennms-core-ipc-rpc-api</feature>
+        <feature>opennms-core-tracing</feature>
         <bundle>mvn:org.opennms.core.health/org.opennms.core.health.api/${project.version}</bundle>
         <bundle>mvn:org.opennms.core.ipc.common/org.opennms.core.ipc.common.kafka/${project.version}</bundle>
         <bundle>mvn:org.opennms.core.ipc.rpc/org.opennms.core.ipc.rpc.kafka/${project.version}</bundle>
@@ -871,7 +886,7 @@
     <feature name="kafka-streams" description="Kafka Streams" version="${kafkaStreamsVersion}">
         <!-- Wrap the kafka-streams bundle instead of using the servicemix implementation since the later doesn't include the required imports for rocksdb -->
         <bundle dependency="true">wrap:mvn:org.apache.kafka/kafka-streams/${kafkaStreamsVersion}$Bundle-Version=${kafkaStreamsVersion}&amp;Export-Package=*;-noimport:=true:version="${kafkaStreamsVersion}"</bundle>
-        <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.kafka-clients/${kafkaStreamsBundleVersion}</bundle>
+        <bundle dependency="true">mvn:org.apache.kafka/kafka-clients/${kafkaStreamsVersion}</bundle>
         <bundle dependency="true">wrap:mvn:org.apache.kafka/connect-json/${kafkaStreamsVersion}</bundle>
         <bundle dependency="true">wrap:mvn:org.apache.kafka/connect-api/${kafkaStreamsVersion}</bundle>
         <bundle dependency="true">mvn:org.lz4/lz4-java/1.4</bundle>
@@ -1347,17 +1362,6 @@
         <bundle>mvn:org.opennms/opennms-web-api/${project.version}</bundle>
         <bundle>mvn:org.freemarker/freemarker/${freemarkerVersion}</bundle>
     </feature>
-    <feature name="vaadin-opennms-pluginmanager" version="${project.version}" description="OpenNMS :: Plugins :: Admin UI">
-        <details>OpenNMS Vaadin Administration UI for installing Plugin modules.</details>
-        <feature>opennms-core</feature>
-        <feature>vaadin</feature>
-        <feature>org.opennms.plugin.licencemanager</feature>
-        <feature>org.opennms.plugin.featuremanager</feature>
-        <bundle>mvn:org.opennms.plugins/vaadin-opennms-pluginmanager/${project.version}</bundle>
-        <bundle>mvn:org.opennms.plugins/org.opennms.plugin.pluginmanager.pluginmanager-core/${pluginmanagerVersion}</bundle>
-        <bundle>mvn:org.opennms.features.vaadin-components/core/${project.version}</bundle>
-        <bundle>mvn:org.opennms.features.vaadin-components/widgetset/${project.version}</bundle>
-    </feature>
     <feature name="alarm-change-notifier" version="${project.version}" description="alarm-change-notifier">
         <details>Feature definition for alarm-change-notifier</details>
         <bundle>mvn:com.impossibl.pgjdbc-ng/pgjdbc-ng/0.7.1</bundle>
@@ -1369,7 +1373,6 @@
         <bundle>mvn:io.netty/netty-codec/${netty4Version}</bundle>
         <bundle>mvn:org.opennms.plugins/alarm-change-notifier.pg-jdbc-utils/${project.version}</bundle>
         <bundle>mvn:org.opennms.plugins/alarm-change-notifier.main-module/${project.version}</bundle>
-        <bundle>mvn:org.opennms.plugins/alarm-change-notifier.product-descriptor/${project.version}</bundle>
         <bundle>mvn:com.googlecode.json-simple/json-simple/1.1.1</bundle>
     </feature>
     <feature name="opennms-es-rest" version="${project.version}" description="OpenNMS :: Features :: ElasticSearch Rest">
@@ -1384,11 +1387,6 @@
         <bundle>mvn:org.opennms.features/org.opennms.features.opennms-es-rest/${project.version}</bundle>
         <bundle>mvn:com.googlecode.json-simple/json-simple/1.1.1</bundle>
         <bundle>mvn:org.opennms.core/org.opennms.core.cache/${project.version}</bundle>
-    </feature>
-    <feature name="internal-plugins-descriptor" version="${project.version}">
-        <details>Module to generate list of internal plugins which can be installed</details>
-        <feature>org.opennms.plugin.licencemanager</feature>
-        <bundle>mvn:org.opennms.plugins/internal-plugins-descriptor/${project.version}</bundle>
     </feature>
     <feature name="opennms-jest" version="${project.version}" description="OpenNMS :: Features :: Jest :: Feature definition">
         <details>Feature definition for Jest (ElasticSearch Java ReST Client)</details>

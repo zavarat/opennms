@@ -270,6 +270,11 @@ include::text/enlinkd/layer-3-discovery.adoc[]
 include::text/enlinkd/layer-3/ospf-discovery.adoc[]
 include::text/enlinkd/layer-3/is-is-discovery.adoc[]
 
+
+[[ga-opennms-opentracing]]
+== OpenTracing
+include::text/opentracing/setup.adoc[]
+
 [[ga-opennms-operation]]
 == Operation
 include::text/operation/ssl/ssl.adoc[]
@@ -323,15 +328,6 @@ endif::opennms-prime[]
 [[ga-sentinel]]
 == Sentinel
 include::text/sentinel/sentinel.adoc[]
-
-[[ga-opennms-plugin-manager]]
-== Plugin Manager
-include::text/plugin-manager/introduction.adoc[]
-include::text/plugin-manager/setting-karaf-instance-data.adoc[]
-include::text/plugin-manager/installing-available-plugins.adoc[]
-include::text/plugin-manager/internal-plugins-repository.adoc[]
-include::text/plugin-manager/installing-licences.adoc[]
-include::text/plugin-manager/licence-structure.adoc[]
 
 == Internal Plugins
 include::text/plugins/introduction.adoc[]
