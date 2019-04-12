@@ -40,11 +40,8 @@ RUN curl -L ${CONFD_URL} -o /usr/bin/confd && \
     groupadd -g 10001 opennms && \
     useradd -u 10001 -g 10001 -r -d /opt/opennms -s /usr/bin/bash opennms && \
     chmod 0775 /opt/opennms "${OPENNMS_OVERLAY}" /entrypoint.sh && \
-    chown opennms:opennms -R /opt/opennms "${OPENNMS_OVERLAY}"
-
-# Openshift overrides USER and uses ones with randomly uid>1024 and gid=0
-# Allow ENTRYPOINT and opennms to run even with a different user
-RUN chgrp -R 0 /opt/opennms "${OPENNMS_OVERLAY}" && \
+    chown opennms:opennms -R /opt/opennms "${OPENNMS_OVERLAY}" && \
+    chgrp -R 0 /opt/opennms "${OPENNMS_OVERLAY}" && \
     chmod -R g=u /opt/opennms "${OPENNMS_OVERLAY}"
 
 LABEL maintainer="The OpenNMS Group" \
@@ -59,7 +56,7 @@ WORKDIR /opt/opennms
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 
-USER 10001
+USER root
 
 STOPSIGNAL SIGTERM
 
