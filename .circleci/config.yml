@@ -91,7 +91,6 @@ workflows:
               only:
                 - master
                 - develop
-                - rt/docker-build
       - publish-minion-oci:
           requires:
             - build-minion-oci
