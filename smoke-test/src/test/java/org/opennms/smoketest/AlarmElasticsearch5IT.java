@@ -60,13 +60,6 @@ import io.searchbox.client.config.HttpClientConfig;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
 
-/**
- * This test is used to validate that alarms are indexed into Elasticsearch
- * when both the 'alarm-change-notifier' and 'opennms-es-rest' features
- * are loaded.
- *
- * @author jwhite
- */
 public class AlarmElasticsearch5IT {
     private static final Logger LOG = LoggerFactory.getLogger(AlarmElasticsearch5IT.class);
 
@@ -122,7 +115,6 @@ public class AlarmElasticsearch5IT {
             pipe.println("config:property-set retries 10");
             pipe.println("config:update");
             pipe.println("feature:install opennms-es-rest");
-            pipe.println("feature:install alarm-change-notifier");
 
             pipe.println("feature:list -i");
             // Set the log level to INFO

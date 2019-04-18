@@ -5,7 +5,6 @@
 ==== Alarm and Event Forwarder
 
 The _Alarm and Event Forwarder_ (formerly known as the _Elasticsearch ReST plugin_) forwards events and alarms to https://github.com/elastic/elasticsearch[Elasticsearch].
-In combination with the alarm _<<ga-internal-plugins-alarm-change-notifier, Alarm Change Notifier Plugin>>_ it also forwards alarm change events.
 
 The events and alarms in _Elasticsearch_ can then be used for indexing, long time archival, plotting with _Grafana_ and browsing with _Kibana_.
 
@@ -111,8 +110,6 @@ NOTE: For more details, consolidate the `--help` option of the command.
 ===== Index Definitions
 
 Three indices are created; one for alarms, one for alarm change events and one for raw events.
-Alarms and alarm change events are only saved if the <<ga-internal-plugins-alarm-change-notifier, Alarm Change Notifier Plugin>> plugin is also
-installed to generate alarm change events from the _{opennms-product-name}_ alarms table.
 The index names are of the form (assuming an index strategy of monthly): `opennms-<name>-<index-strategy>/type/id`
 
 For example

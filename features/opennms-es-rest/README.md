@@ -14,9 +14,6 @@ This project sends opennms data to Elasticsearch using the Jest ReST library
 
 Three indexes are created; one for alarms, one for alarm change events and one for raw events.
 
-Alarms and alarm change events are only saved if the alarm-change-notifier plugin is also installed to generate alarm change events from the opennms alarms table. 
-(https://github.com/gallenc/alarm-change-notifier)
-
 ### To install in OpenNMS 
 
 Open the karaf command prompt using
