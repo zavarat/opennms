@@ -28,11 +28,18 @@
 
 package org.opennms.netmgt.graph.persistence;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opennms.core.test.OpenNMSJUnit4ClassRunner;
 import org.opennms.core.test.db.annotations.JUnitTemporaryDatabase;
+import org.opennms.netmgt.graph.api.generic.GenericGraph;
+import org.opennms.netmgt.graph.api.generic.GenericGraphContainer;
+import org.opennms.netmgt.graph.api.generic.GenericVertex;
 import org.opennms.netmgt.graph.api.info.DefaultGraphInfo;
 import org.opennms.netmgt.graph.api.persistence.GraphRepository;
 import org.opennms.netmgt.graph.simple.SimpleEdge;
@@ -126,6 +133,27 @@ public class DefaultGraphRepositoryIT {
          */
         graphRepository.deleteContainer(CONTAINER_ID);
         Assert.assertNull(graphRepository.findContainerById(CONTAINER_ID, new GenericGraphContainerToSimpleGraphContainerTransformer()));
+    }
+
+    @Test
+    public void verifySavingCollections() {
+
+        GenericVertex vertex = new GenericVertex(NAMESPACE, "v1");
+        vertex.setProperty("collectionProperty", Arrays.asList("E", "F"));
+
+        final GenericGraph graph = new GenericGraph();
+        graph.setNamespace(NAMESPACE);
+        graph.setProperty("collectionProperty", Arrays.asList("C", "D"));
+        graph.addVertex(vertex);
+
+        GenericGraphContainer originalContainer = new GenericGraphContainer();
+        originalContainer.setId(CONTAINER_ID);
+        originalContainer.setProperty("collectionProperty", Arrays.asList("A", "B"));
+        originalContainer.addGraph(graph);
+
+        graphRepository.save(originalContainer);
+        GenericGraphContainer loadedContainer = graphRepository.findContainerById(CONTAINER_ID);
+        assertEquals(originalContainer.getGraph(NAMESPACE), loadedContainer.getGraph(NAMESPACE));
     }
 
     private void verifyEquals(SimpleGraphContainer originalContainer, SimpleGraphContainer persistedContainer) {
