@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opennms.core.test.OpenNMSJUnit4ClassRunner;
 import org.opennms.core.test.db.annotations.JUnitTemporaryDatabase;
-import org.opennms.netmgt.graph.api.info.DefaultGraphInfo;
 import org.opennms.netmgt.graph.api.persistence.GraphRepository;
 import org.opennms.netmgt.graph.simple.SimpleEdge;
 import org.opennms.netmgt.graph.simple.SimpleGraph;
@@ -84,7 +83,7 @@ public class DefaultGraphRepositoryIT {
 
         graph1.addVertex(v1);
         graph1.addVertex(v2);
-        graph1.addEdge(new SimpleEdge(v1, v2));
+        graph1.addEdge(new SimpleEdge(NAMESPACE, v1, v2));
 
         // Second graph is a copy of the first
         final SimpleGraph graph2 = new SimpleGraph(graph1);
